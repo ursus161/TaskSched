@@ -1,4 +1,6 @@
+#pragma once
 #include "Task.h"
+
 
 Task::Task(int id, const std::string& name, int priority, int WCET, int deadline)
     :id(id),
