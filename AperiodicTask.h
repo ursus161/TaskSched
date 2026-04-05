@@ -10,6 +10,8 @@ protected:
 public:
     AperiodicTask(int id, const std::string& name, int priority,
                   int wcet, int deadline, int arrival_time);
+    
+    AperiodicTask(const AperiodicTask& other);
 
     ~AperiodicTask() override = default;
 

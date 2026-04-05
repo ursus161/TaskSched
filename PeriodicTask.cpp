@@ -11,6 +11,14 @@ PeriodicTask::PeriodicTask(int id, const string& name, int priority,
                 first_release(0),
                 jobs_released(0) {};
 
+PeriodicTask::PeriodicTask(const PeriodicTask& other)
+
+    : Task(other),
+      period(other.period),
+      first_release(other.first_release),
+      jobs_released(other.jobs_released) {}
+
+      
 PeriodicTask::~PeriodicTask()  {};
 
 bool PeriodicTask::isReadyAt(int current_time) const{ 

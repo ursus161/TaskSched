@@ -13,7 +13,8 @@ public:
     PeriodicTask(int id, const string& name, int priority,
                  int WCET, int deadline, int period, int first_release );
 
-
+    PeriodicTask(const PeriodicTask& other);
+    
     ~PeriodicTask() override = default;
 
     bool isReadyAt(int current_time) const override;

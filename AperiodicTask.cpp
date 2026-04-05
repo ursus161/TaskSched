@@ -6,6 +6,12 @@ AperiodicTask::AperiodicTask(int id, const std::string& name, int priority,
       arrival_time(arrival_time),
       released(false) {}
 
+AperiodicTask::AperiodicTask(const AperiodicTask& other)
+
+    : Task(other),
+      arrival_time(other.arrival_time),
+      released(other.released) {}
+
 bool AperiodicTask::isReadyAt(int current_time) const {
     
     return !released && current_time >= arrival_time;

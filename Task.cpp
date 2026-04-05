@@ -12,6 +12,11 @@ Task::Task(int id, const std::string& name, int priority, int WCET, int deadline
      remaining_time(0),
      absolute_deadline(0) {}
 
+Task::Task(const Task& other)
+    : id(other.id), name(other.name), priority(other.priority),
+      WCET(other.WCET), deadline(other.deadline),
+      state(other.state), remaining_time(other.remaining_time),
+      absolute_deadline(other.absolute_deadline) {}
 
 Task::Task() 
     : id(0), name(""), priority(0), WCET(0), deadline(0),

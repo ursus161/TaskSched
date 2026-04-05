@@ -37,6 +37,7 @@ protected:
 
 public: 
     Task(int id, const string& name, int priority, int WCET, int deadline);
+    Task(const Task& other);
 
     Task();
 
@@ -61,4 +62,5 @@ public:
 
     virtual void release(int current_time) = 0; //difera per tip de task, spre ex dau handle la debounce diferit ptr fiecare clasa
     virtual string getType() const = 0; 
+
 };
