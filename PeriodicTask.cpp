@@ -24,7 +24,7 @@ bool PeriodicTask::isReadyAt(int current_time) const{
 };
 
 void PeriodicTask::release(int current_time){
-    // porneste taskul, intra in ready queue daca e valid de metoda anterior definita
+    // reporneste taskul, intra in ready queue daca e valid de metoda anterior definita
 
      this->remaining_time = WCET;
     this->absolute_deadline = current_time + deadline;
@@ -34,7 +34,7 @@ void PeriodicTask::release(int current_time){
 }
 
 string PeriodicTask::getType() const{
-    
+
     return "PeriodicTask";
     
     //fiind doar citit, as fi putut opta pentru string_view 
