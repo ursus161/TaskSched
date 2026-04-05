@@ -36,6 +36,9 @@ protected:
 
 public: 
     Task(int id, const string& name, int priority, int WCET, int deadline);
+
+    Task();
+
     virtual ~Task() = 0;
 
     
@@ -48,7 +51,13 @@ public:
     int getAbsoluteDeadline() const;
 
 
-    virtual bool isReadyAt(int current_time) const = 0;
+    virtual bool isReadyAt(int current_time) const = 0; // daca un task e gata la un timp anume de a fi rulat pe cpu
+    // a nu se confunda ready cu finished 
+    //de ce metoda virtuala?
+    //la un task periodic care sa zicem ruleaza la 100ms (0,100,200..), ar fi ready la 0,100
+    //la un task aperiodic de ex daca apas un buton de aer conditionat la t=13, la t=13 o sa fie ready si pus in queue
+    //iar la ceva sporadic trebuie sa fi apasat pe trigger, dar sa fi si trecut perioada de debounce, hence the mm
+
     virtual void release(int current_time) = 0; //difera per tip de task, spre ex dau handle la debounce diferit ptr fiecare clasa
     virtual string getType() const = 0; 
 };
