@@ -3,9 +3,9 @@
 using namespace std;
 
 PeriodicTask::PeriodicTask(int id, const string& name, int priority,
-                 int WCET, int deadline, int period, int first_release ) :
+                 int worstCaseExecutionTime, int deadline, int period, int first_release ) :
 
-                 Task(id,name,priority,WCET,deadline),
+                 Task(id,name,priority,worstCaseExecutionTime,deadline),
 
                 period(period), 
                 first_release(0),
@@ -19,7 +19,6 @@ PeriodicTask::PeriodicTask(const PeriodicTask& other)
       jobs_released(other.jobs_released) {}
 
       
-PeriodicTask::~PeriodicTask()  {};
 
 bool PeriodicTask::isReadyAt(int current_time) const{ 
 
@@ -34,7 +33,7 @@ bool PeriodicTask::isReadyAt(int current_time) const{
 void PeriodicTask::release(int current_time){
     // reporneste taskul, intra in ready queue daca e valid de metoda anterior definita
 
-     this->remaining_time = WCET;
+     this->remaining_time = worstCaseExecutionTime;
     this->absolute_deadline = current_time + deadline;
    this->state = TaskState::Ready;
     this->jobs_released++ ; 

@@ -1,12 +1,11 @@
-#pragma once
 #include "Task.h"
+using namespace std;
 
-
-Task::Task(int id, const std::string& name, int priority, int WCET, int deadline)
+Task::Task(int id, const string& name, int priority, int worstCaseExecutionTime, int deadline)
     :id(id),
      name(name), 
      priority(priority),
-     WCET(WCET),
+     worstCaseExecutionTime(worstCaseExecutionTime),
      deadline(deadline),
      state(TaskState::Ready),
      remaining_time(0),
@@ -14,19 +13,19 @@ Task::Task(int id, const std::string& name, int priority, int WCET, int deadline
 
 Task::Task(const Task& other)
     : id(other.id), name(other.name), priority(other.priority),
-      WCET(other.WCET), deadline(other.deadline),
+      worstCaseExecutionTime(other.worstCaseExecutionTime), deadline(other.deadline),
       state(other.state), remaining_time(other.remaining_time),
       absolute_deadline(other.absolute_deadline) {}
 
 Task::Task() 
-    : id(0), name(""), priority(0), WCET(0), deadline(0),
+    : id(0), name(""), priority(0), worstCaseExecutionTime(0), deadline(0),
       state(TaskState::Ready), remaining_time(0), absolute_deadline(0) {}
 
 Task::~Task() {}
 
 int Task::getId() const { return id; }
 
-const std::string& Task::getName() const { return name; }
+const string& Task::getName() const { return name; }
 
 int Task::getPriority() const { return priority; }
 int Task::getDeadline() const { return deadline; }

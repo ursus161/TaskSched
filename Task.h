@@ -19,7 +19,7 @@ protected:
     int id;
     string name; //ptr logging si debug
     int priority; // voi folosi un max-heap unde voi avea nevoie de campul acesta ptr coada de prioritati
-    int WCET; // worst case exec time
+    int worstCaseExecutionTime; // worst case exec time
 
     int deadline;//constanta in unitati de timp 
 
@@ -36,7 +36,7 @@ protected:
     void setAbsoluteDeadline(int d);
 
 public: 
-    Task(int id, const string& name, int priority, int WCET, int deadline);
+    Task(int id, const string& name, int priority, int worstCaseExecutionTime, int deadline);
     Task(const Task& other);
 
     Task();

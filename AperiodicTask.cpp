@@ -1,8 +1,9 @@
 #include "AperiodicTask.h"
+using namespace std;
 
-AperiodicTask::AperiodicTask(int id, const std::string& name, int priority,
-                             int WCET, int deadline, int arrival_time)
-    : Task(id, name, priority, WCET, deadline),
+AperiodicTask::AperiodicTask(int id, const string& name, int priority,
+                             int worstCaseExecutionTime, int deadline, int arrival_time)
+    : Task(id, name, priority, worstCaseExecutionTime, deadline),
       arrival_time(arrival_time),
       released(false) {}
 
@@ -19,13 +20,13 @@ bool AperiodicTask::isReadyAt(int current_time) const {
 
 void AperiodicTask::release(int current_time) {
     //analog periodic task
-    this->remaining_time = WCET;
+    this->remaining_time = worstCaseExecutionTime;
     this->absolute_deadline = current_time + deadline;
     this->state = TaskState::Ready;
     //aici nu conteaza de cate ori a fost released
     this->released = true;
 }
 
-std::string AperiodicTask::getType() const {
+string AperiodicTask::getType() const {
     return "AperiodicTask";
 }
