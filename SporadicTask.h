@@ -19,6 +19,8 @@ public:
                  int worstCaseExecutionTime, int deadline, int minimumInterArrivalTime,
                  const vector<int>& triggers);
     SporadicTask(const SporadicTask& other);
+
+    SporadicTask();
     ~SporadicTask() override = default;
 
     bool isReadyAt(int current_time) const override;

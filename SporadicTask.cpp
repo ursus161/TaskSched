@@ -13,6 +13,15 @@ SporadicTask::SporadicTask(int id, const string& name, int priority,
       triggers(triggers),
       next_trigger_index(0) {}
 
+SporadicTask::SporadicTask():
+Task(),
+PeriodicTask(),
+AperiodicTask(),
+minimumInterArrivalTime(0),
+last_activation(0),
+triggers({}),
+next_trigger_index(0) {}
+
 SporadicTask::SporadicTask(const SporadicTask& other)
     : Task(other),
     

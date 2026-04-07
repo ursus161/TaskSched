@@ -12,7 +12,7 @@ int main(){
     //to do
     //constructori default 
     //supraincarcare la << si >>
-
-    cout<<"test makefile "<<aper.getName();
+    
+    cout<<"test makefile "<<aper.getName()<<" "<<aper.getAbsoluteDeadline();
     return 0;
 }
