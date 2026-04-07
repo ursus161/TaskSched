@@ -12,6 +12,7 @@ public:
     AperiodicTask(int id, const string& name, int priority,
                   int worstCaseExecutionTime, int deadline, int arrival_time);
     
+    AperiodicTask();
     AperiodicTask(const AperiodicTask& other);
         
     ~AperiodicTask() override = default;

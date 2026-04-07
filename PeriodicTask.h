@@ -11,7 +11,9 @@ protected:
 
 public:
     PeriodicTask(int id, const string& name, int priority,
-                 int worstCaseExecutionTime, int deadline, int period, int first_release );
+        int worstCaseExecutionTime, int deadline, int period, int first_release );
+        
+    PeriodicTask();
 
     PeriodicTask(const PeriodicTask& other);
     

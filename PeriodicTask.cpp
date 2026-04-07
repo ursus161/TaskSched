@@ -11,6 +11,12 @@ PeriodicTask::PeriodicTask(int id, const string& name, int priority,
                 first_release(0),
                 jobs_released(0) {};
 
+PeriodicTask::PeriodicTask()
+:Task(),
+period(0),
+first_release(0),
+jobs_released(0)  { };
+
 PeriodicTask::PeriodicTask(const PeriodicTask& other)
 
     : Task(other),

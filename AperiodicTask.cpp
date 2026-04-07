@@ -7,6 +7,11 @@ AperiodicTask::AperiodicTask(int id, const string& name, int priority,
       arrival_time(arrival_time),
       released(false) {}
 
+AperiodicTask::AperiodicTask()
+:Task(), 
+arrival_time(0),
+released(false){}
+
 AperiodicTask::AperiodicTask(const AperiodicTask& other)
 
     : Task(other),
