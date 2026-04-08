@@ -7,7 +7,7 @@ Task::Task(int id, const string& name, int priority, int worstCaseExecutionTime,
      priority(priority),
      worstCaseExecutionTime(worstCaseExecutionTime),
      deadline(deadline),
-     state(TaskState::Ready),
+     state(TaskState::Inactive),
      remaining_time(0),
      absolute_deadline(0) {}
 
@@ -19,7 +19,7 @@ Task::Task(const Task& other)
 
 Task::Task() 
     : id(0), name(""), priority(0), worstCaseExecutionTime(0), deadline(0),
-      state(TaskState::Ready), remaining_time(0), absolute_deadline(0) {}
+      state(TaskState::Inactive), remaining_time(0), absolute_deadline(0) {}
 
 Task::~Task() {}
 

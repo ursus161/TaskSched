@@ -7,6 +7,7 @@ using namespace std;
 enum class TaskState { // starile in care pot fi fiecare task, ready running si finished e destul de evident ce semnifica
     //am ales sa nu implic si starile proceselor ce sunt gata insa sistemul de operare inca nu a gestionat memoria din motiv de simplitate al proiectului
     //blocked poate fi ceva care tine procesul suspendat 
+    Inactive,
     Ready,
     Running,
     Blocked,
@@ -14,6 +15,7 @@ enum class TaskState { // starile in care pot fi fiecare task, ready running si 
 };
 
 class Task {
+    friend class Scheduler;
 protected:
 
     int id;
