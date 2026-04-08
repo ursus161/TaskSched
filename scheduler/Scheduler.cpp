@@ -10,6 +10,16 @@ void Scheduler::addTask(Task* task) {
     tasks.push_back(task); //adaug in pq
 }
 
+void Scheduler::dispatch(Task* new_running) {
+    if (current_running != nullptr) {
+        current_running->setState(TaskState::Ready);
+        ready_queue.push(current_running);
+    }
+    current_running = new_running;
+    current_running->setState(TaskState::Running);
+    ready_queue.pop();
+}
+
 void Scheduler::run(int duration) {
     for (current_time = 0; current_time < duration; current_time++) {
 
@@ -24,18 +34,10 @@ void Scheduler::run(int duration) {
         //decide cine ruleaza  
         if (!ready_queue.empty()) {
             Task* top = ready_queue.top();
-            if (current_running == nullptr) {
+            if (current_running == nullptr || (top->getPriority() > current_running->getPriority()))  {
                 // CPU idle, luam topul, nu vreau sa stea degeaba core-ul meu
-                current_running = top;
-                current_running->setState(TaskState::Running);
-                ready_queue.pop();
-            } else if (top->getPriority() > current_running->getPriority()) {
-                // apoi daca trebuie sa fac context switch iau topul care are prioritate mai mare
-                current_running->setState(TaskState::Ready);
-                ready_queue.push(current_running);
-                current_running = top;
-                current_running->setState(TaskState::Running);//partae de preemptie
-                ready_queue.pop(); 
+               dispatch(top);
+            
             }
         }
 

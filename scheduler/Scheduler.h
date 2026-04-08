@@ -21,13 +21,15 @@ private:
     std::vector<Task*> tasks;
 
     // taskul care ruleaza acum, nullptr daca CPU idle
-    Task* current_running;
+    Task* current_running;  
 
     // timpul curent al simularii in tickuri
     int current_time;
 
     // ready queue ordonata dupa prioritate, cele 3 elemente din pq sunt tipul de obiect tinut in pq, unde le stocheaza si dupa ce metoda imi face heap ul intern
     std::priority_queue<Task*, std::vector<Task*>, TaskCompare> ready_queue;
+
+    void dispatch(Task* new_running);
 
 public:
     Scheduler();
