@@ -4,7 +4,10 @@
 using namespace std;
 
 Scheduler::Scheduler()
-    : current_running(nullptr), current_time(0) {}
+    : policy(nullptr),
+      current_running(nullptr),
+      current_time(0),
+      ready_queue(PolicyComparator{nullptr}) {}
 
 
 Scheduler::Scheduler(SchedulingPolicy* policy)
@@ -27,7 +30,16 @@ void Scheduler::addTask(Task* task) {
     tasks.push_back(task); //adaug in pq
 }
 
-void Scheduler::dispatch(Task* new_running) {
+
+void Scheduler::setPolicy(SchedulingPolicy* p) {
+
+    policy = p;
+    // recreeaza ready_queue cu noul comparator, reinitializez depinde de usecase
+
+    ready_queue = std::priority_queue<Task*, std::vector<Task*>, PolicyComparator>(PolicyComparator{p});
+}
+
+void Scheduler::dispatch(Task* new_running) {   
     if (current_running != nullptr) {
         current_running->setState(TaskState::Ready);
         ready_queue.push(current_running);
@@ -51,7 +63,7 @@ void Scheduler::run(int duration) {
         //decide cine ruleaza  
         if (!ready_queue.empty()) {
             Task* top = ready_queue.top();
-            if (current_running == nullptr || (top->getPriority() > current_running->getPriority()))  {
+            if (current_running == nullptr || policy->isHigherPriority(top, current_running))  {
                 // CPU idle, luam topul, nu vreau sa stea degeaba core-ul meu
                dispatch(top);
             

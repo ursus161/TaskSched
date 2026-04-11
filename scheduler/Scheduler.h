@@ -3,7 +3,7 @@
 #include "Task.h"
 #include <vector>
 #include <queue>
-#include "SchedulerPolicy.h"
+#include "policies/SchedulerPolicy.h"
 // pentru comparat taskuri dupa prioritate
 // returneaza true daca a are prioritate mai mica decat b
 // priority_queue e max-heap, deci cel cu prioritate mai mare iese primul
@@ -42,6 +42,7 @@ public:
     Scheduler();
     Scheduler(SchedulingPolicy* policy);
     Scheduler(Scheduler& sched);
+    void setPolicy(SchedulingPolicy* p);
     void addTask(Task* task); // probabil citirea de aici o vom face ori de la un CSV ori de la un user, detaliu de implementare pe care l vom vedea ulterior
     void run(int duration); // main logic shall be here
 };
