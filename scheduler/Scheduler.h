@@ -3,20 +3,25 @@
 #include "Task.h"
 #include <vector>
 #include <queue>
-
+#include "SchedulerPolicy.h"
 // pentru comparat taskuri dupa prioritate
 // returneaza true daca a are prioritate mai mica decat b
 // priority_queue e max-heap, deci cel cu prioritate mai mare iese primul
 // ideea e ca priority queue vrea sa mi instantieze comparatorul PolicyComparator cmp, motivul pentru care l am facut struct
 // si o sa am in implementarea interna a PQ cmp.operator()(task1,task2)
 struct PolicyComparator {
+
+    SchedulingPolicy* policy;
+
     bool operator()(Task* a, Task* b) const {
-        return a->getPriority() < b->getPriority();
+        return !policy->isHigherPriority(a,b);
     }
 };
 
 class Scheduler {
 private:
+
+    SchedulingPolicy* policy;
     // toate taskurile din sistem, nu le detinem
     std::vector<Task*> tasks;
 
@@ -24,6 +29,8 @@ private:
     Task* current_running;  
 
     // timpul curent al simularii in tickuri
+
+
     int current_time;
 
     // ready queue ordonata dupa prioritate, cele 3 elemente din pq sunt tipul de obiect tinut in pq, unde le stocheaza si dupa ce metoda imi face heap ul intern
@@ -33,6 +40,7 @@ private:
 
 public:
     Scheduler();
+    Scheduler(SchedulingPolicy* policy);
     Scheduler(Scheduler& sched);
     void addTask(Task* task); // probabil citirea de aici o vom face ori de la un CSV ori de la un user, detaliu de implementare pe care l vom vedea ulterior
     void run(int duration); // main logic shall be here

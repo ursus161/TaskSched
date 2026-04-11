@@ -6,6 +6,23 @@ using namespace std;
 Scheduler::Scheduler()
     : current_running(nullptr), current_time(0) {}
 
+
+Scheduler::Scheduler(SchedulingPolicy* policy)
+    : policy(policy),
+      current_running(nullptr),
+      current_time(0),
+      ready_queue(PolicyComparator{policy}) {}
+
+
+
+Scheduler::Scheduler(Scheduler& sched)
+    : policy(sched.policy),
+      tasks(sched.tasks),
+      current_running(sched.current_running),
+      current_time(sched.current_time),
+      ready_queue(sched.ready_queue) {}
+
+      
 void Scheduler::addTask(Task* task) {
     tasks.push_back(task); //adaug in pq
 }
