@@ -1,27 +1,27 @@
 #include "tasks/PeriodicTask.h"
-#include "tasks/AperiodicTask.h"
 #include "scheduler/Scheduler.h"
 #include "scheduler/policies/PriorityPolicy.h"
-#include "scheduler/policies/RateMonotonicPolicy.h"
 #include "scheduler/policies/EDFPolicy.h"
+#include "scheduler/policies/RateMonotonicPolicy.h"
+#include "scheduler/policies/SchedulerPolicy.h"
+
 int main() {
-    // cateva taskuri periodice de test
-    PeriodicTask* t1 = new PeriodicTask(1, "sensor", 10, 2, 10, 10);
-    PeriodicTask* t2 = new PeriodicTask(2, "display", 5, 3, 20, 20);
-    AperiodicTask* t3 = new AperiodicTask(3, "button", 15, 2, 8, 5);
+    // task A: prioritate mica, deadline strans
+    PeriodicTask* tA = new PeriodicTask(1, "A", 5,  3, 10, 10);
+    // task B: prioritate mare, deadline larg
+    PeriodicTask* tB = new PeriodicTask(2, "B", 10, 4, 20, 20);
 
-    SchedulingPolicy* policy = new RateMonotonicPolicy();
+    // schimba intre PriorityPolicy si EDFPolicy ca sa vezi diferenta
+    SchedulingPolicy* policy = new PriorityPolicy();
 
-    Scheduler sched{policy};
-    sched.addTask(t1);
-    sched.addTask(t2);
-    sched.addTask(t3);
+    Scheduler sched(policy);
+    sched.addTask(tA);
+    sched.addTask(tB);
 
-    sched.run(30);
+    sched.run(25);
 
-    delete t1;
-    delete t2;
-    delete t3;
+    delete tA;
+    delete tB;
     delete policy;
 
     return 0;
