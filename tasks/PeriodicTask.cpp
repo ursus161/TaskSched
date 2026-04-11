@@ -23,9 +23,11 @@ PeriodicTask::PeriodicTask(const PeriodicTask& other)
       period(other.period),
       first_release(other.first_release),
       jobs_released(other.jobs_released) {}
-
+ 
       
-
+int PeriodicTask::getPeriod() const { 
+    return this->period;
+}
 bool PeriodicTask::isReadyAt(int current_time) const{ 
 
     return current_time >= first_release + jobs_released * period;

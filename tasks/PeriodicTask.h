@@ -21,4 +21,7 @@ public:
     bool isReadyAt(int current_time) const override;
     void release(int current_time) override;
     string getType() const override;
+
+    int getPeriod() const;
+
 };

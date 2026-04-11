@@ -7,9 +7,9 @@
 // pentru comparat taskuri dupa prioritate
 // returneaza true daca a are prioritate mai mica decat b
 // priority_queue e max-heap, deci cel cu prioritate mai mare iese primul
-// ideea e ca priority queue vrea sa mi instantieze comparatorul TaskCompare cmp, motivul pentru care l am facut struct
+// ideea e ca priority queue vrea sa mi instantieze comparatorul PolicyComparator cmp, motivul pentru care l am facut struct
 // si o sa am in implementarea interna a PQ cmp.operator()(task1,task2)
-struct TaskCompare {
+struct PolicyComparator {
     bool operator()(Task* a, Task* b) const {
         return a->getPriority() < b->getPriority();
     }
@@ -27,7 +27,7 @@ private:
     int current_time;
 
     // ready queue ordonata dupa prioritate, cele 3 elemente din pq sunt tipul de obiect tinut in pq, unde le stocheaza si dupa ce metoda imi face heap ul intern
-    std::priority_queue<Task*, std::vector<Task*>, TaskCompare> ready_queue;
+    std::priority_queue<Task*, std::vector<Task*>, PolicyComparator> ready_queue;
 
     void dispatch(Task* new_running);
 
