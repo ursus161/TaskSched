@@ -3,7 +3,7 @@
 #include "scheduler/policies/PriorityPolicy.h"
 #include "scheduler/policies/EDFPolicy.h"
 #include "scheduler/policies/RateMonotonicPolicy.h"
-#include "scheduler/policies/SchedulerPolicy.h"
+#include "scheduler/policies/SchedulingPolicy.h"
 
 int main() {
     // task A: prioritate mica, deadline strans

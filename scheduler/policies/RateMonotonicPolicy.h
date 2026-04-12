@@ -1,4 +1,4 @@
-#include "SchedulerPolicy.h"
+#include "SchedulingPolicy.h"
 
 // rate monotonic --> perioada mai mica = prioritate mai mare, practic prioritizez cel care dureaza cel mai putin
 // merge doar pe taskuri periodice, pt ca practic am prioritatea invers proportionala cu perioada
@@ -13,7 +13,7 @@ public:
 
         if (!priorityA || !priorityB) return false;  // fallback daca nu sunt periodice
         return priorityA->getPeriod() < priorityB->getPeriod();
-    }
+    }   
 
     std::string getName() const override { return "Rate Monotonic"; }
 };

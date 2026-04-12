@@ -1,4 +1,4 @@
-#include "SchedulerPolicy.h"
+#include "SchedulingPolicy.h"
 
 
 // Priority Scheduling clasic - prioritate statica (exact ceea ce implementasem in commit ul anterior)

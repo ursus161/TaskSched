@@ -3,7 +3,7 @@
 #include "Task.h"
 #include <vector>
 #include <queue>
-#include "policies/SchedulerPolicy.h"
+#include "policies/SchedulingPolicy.h"
 // pentru comparat taskuri dupa prioritate
 // returneaza true daca a are prioritate mai mica decat b
 // priority_queue e max-heap, deci cel cu prioritate mai mare iese primul
