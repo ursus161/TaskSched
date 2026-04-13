@@ -1,12 +1,13 @@
 #include "EventQueue.h"
 
+//de ce imi trebuie lock uri? pot face pop si push in acelasi timp, clasic queue race condition
 void EventQueue::push(const Event& event) {
     // iau lacatul ca sa pot modifica q in siguranta
     std::lock_guard<std::mutex> lock(mutex);
     q.push(event);
     // apoi trezesc un consumer care dormea pe cv
     condition_variable.notify_one();
-}
+} 
 
 Event EventQueue::pop() {
 
