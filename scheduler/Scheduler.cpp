@@ -42,10 +42,10 @@ void Scheduler::setPolicy(SchedulingPolicy* p) {
 void Scheduler::dispatch(Task* new_running) {   
     if (current_running != nullptr) {
         current_running->setState(TaskState::Ready);
-        ready_queue.push(current_running);
+        ready_queue.push(current_running);//asta e partea de preemptie
     }
     current_running = new_running;
-    current_running->setState(TaskState::Running);
+    current_running->setState(TaskState::Running); // si asta e partea de dispatch      
     ready_queue.pop();
 }
 

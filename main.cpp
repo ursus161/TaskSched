@@ -1,10 +1,11 @@
 #include "tasks/PeriodicTask.h"
+#include "tasks/SporadicTask.h"
 #include "scheduler/Scheduler.h"
 #include "scheduler/policies/PriorityPolicy.h"
 #include "scheduler/policies/EDFPolicy.h"
 #include "scheduler/policies/RateMonotonicPolicy.h"
 #include "scheduler/policies/SchedulingPolicy.h"
-
+#include <iostream>
 int main() {
     // task A: prioritate mica, deadline strans
     PeriodicTask* tA = new PeriodicTask(1, "A", 5,  3, 10, 10);
@@ -19,10 +20,9 @@ int main() {
     sched.addTask(tB);
 
     sched.run(25);
-
     delete tA;
     delete tB;
     delete policy;
-
+   
     return 0;
 }
