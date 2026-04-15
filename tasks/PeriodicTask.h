@@ -18,6 +18,11 @@ public:
     
     ~PeriodicTask() override = default;
 
+    PeriodicTask& operator=(const PeriodicTask& other);
+
+    friend std::ostream& operator<<(std::ostream& out, const PeriodicTask& pt);
+    friend std::istream& operator>>(std::istream& in, PeriodicTask& pt);
+
     bool isReadyAt(int current_time) const override;
     void release(int current_time) override;
     string getType() const override;

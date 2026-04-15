@@ -1,4 +1,5 @@
 #include <string>
+#include <iostream>
 #include "PeriodicTask.h"
 using namespace std;
 
@@ -25,6 +26,30 @@ PeriodicTask::PeriodicTask(const PeriodicTask& other)
       jobs_released(other.jobs_released) {}
  
       
+
+PeriodicTask& PeriodicTask::operator=(const PeriodicTask& other) {
+    if (this == &other) return *this;
+    Task::operator=(other);   // apeleaza operator= al bazei pentru campurile mostenite, analog constructorilor de mai sus
+    period = other.period;
+    first_release = other.first_release;
+    jobs_released = other.jobs_released;
+    return *this;
+}
+
+std::ostream& operator<<(std::ostream& out, const PeriodicTask& pt) {
+    out << static_cast<const Task&>(pt)   // apeleaza operator<< al bazei
+        << " period=" << pt.period
+        << " jobs_released=" << pt.jobs_released;
+    return out;
+}
+
+std::istream& operator>>(std::istream& in, PeriodicTask& pt) {
+    in >> static_cast<Task&>(pt) >> pt.period; // refolosesc cod ca mai sus ( multumim polimorfism )
+    
+    return in;
+}
+
+
 int PeriodicTask::getPeriod() const { 
     return this->period;
 }
