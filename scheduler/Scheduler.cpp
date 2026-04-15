@@ -10,12 +10,12 @@ Scheduler::Scheduler()
       ready_queue(PolicyComparator{nullptr}) {}
 
 
-Scheduler::Scheduler(SchedulingPolicy* policy)
+Scheduler::Scheduler(SchedulingPolicy* policy, Stats* stats)
     : policy(policy),
+      stats(stats),
       current_running(nullptr),
       current_time(0),
       ready_queue(PolicyComparator{policy}) {}
-
 
 
 Scheduler::Scheduler(Scheduler& sched)
@@ -47,45 +47,61 @@ void Scheduler::dispatch(Task* new_running) {
     current_running = new_running;
     current_running->setState(TaskState::Running); // si asta e partea de dispatch      
     ready_queue.pop();
+    stats->onPreempt(current_running->getId());   
 }
 
 void Scheduler::run(int duration) {
     for (current_time = 0; current_time < duration; current_time++) {
-
-        // verifica ce taskuri devin ready acum
+        // verifica ce taskuri devin ready acum + deadline miss check
         for (Task* t : tasks) {
-            if (t->isReadyAt(current_time) && t->getState() != TaskState::Ready  && t->getState() != TaskState::Running) {
-                t->release(current_time); //devine disponibil ptr pq, imi reseteaza si toate datele taskului
-                ready_queue.push(t);
-            }
-        }
+                    // release pentru taskuri care devin ready
+             if (t->isReadyAt(current_time) && t->getState() != TaskState::Ready  && t->getState() != TaskState::Running) {
+                                
+                        t->release(current_time); //devine disponibil ptr pq, imi reseteaza si toate datele taskului
+                        ready_queue.push(t);
+                        stats->onRelease(t->getId());
+                }
+                            // deadline miss check pentru taskuri active
+                if (t->getState() != TaskState::Finished && t->getState() != TaskState::Inactive && current_time > t->getAbsoluteDeadline()) {
+                            
+                        stats->onDeadlineMiss(t->getId());
+                        t->setState(TaskState::Finished);
 
+                        if (current_running == t) current_running = nullptr;
+                }
+        }
         //decide cine ruleaza  
-        if (!ready_queue.empty()) {
-            Task* top = ready_queue.top();
-            if (current_running == nullptr || policy->isHigherPriority(top, current_running))  {
-                // CPU idle, luam topul, nu vreau sa stea degeaba core-ul meu
-               dispatch(top);
-            
-            }
-        }
+                if (!ready_queue.empty()) {
 
-        //executa 1 tick din taskul curent
-        if (current_running != nullptr) {
-            int remainingTime = current_running->getRemainingTime();
-            current_running->setRemainingTime(remainingTime - 1);
+                    Task* top = ready_queue.top();
 
-            cout << "[t=" << current_time << "] running task "
-                 << current_running->getId() << " ("
-                 << current_running->getName() << ")" << endl;
+                    if (current_running == nullptr || policy->isHigherPriority(top, current_running))  {  dispatch(top);  }
+                }
+                        //executa 1 tick din taskul curent
+                if (current_running != nullptr) {
 
-            // pas 4: verifica daca a terminat
-            if (current_running->getRemainingTime() == 0) {
-                current_running->setState(TaskState::Finished);
-                current_running = nullptr;
-            }
-        } else {
-            cout << "[t=" << current_time << "] CPU idle" << endl;
-        }
-    }
-}
+
+                int remainingTime = current_running->getRemainingTime();
+                current_running->setRemainingTime(remainingTime - 1);
+
+                stats->onTick(true);
+
+                cout << "[t=" << current_time << "] running task "
+                << current_running->getId() << " ("
+                << current_running->getName() << ")" << endl;
+                
+                if (current_running->getRemainingTime() == 0) {
+
+                        int response_time = (current_time + 1) - (current_running->getAbsoluteDeadline() - current_running->getDeadline());
+
+                        stats->onComplete(current_running->getId(), response_time);
+
+                        current_running->setState(TaskState::Finished);
+                        current_running = nullptr;
+                }
+          } else {
+                        stats->onTick(false);
+                        cout << "[t=" << current_time << "] CPU idle" << endl;
+                }
+         }
+   }

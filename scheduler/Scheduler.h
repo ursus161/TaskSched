@@ -4,6 +4,7 @@
 #include <vector>
 #include <queue>
 #include "policies/SchedulingPolicy.h"
+#include "stats/Stats.h"
 // pentru comparat taskuri dupa prioritate
 // returneaza true daca a are prioritate mai mica decat b
 // priority_queue e max-heap, deci cel cu prioritate mai mare iese primul
@@ -20,6 +21,8 @@ struct PolicyComparator {
 
 class Scheduler {
 private:
+
+    Stats* stats;
 
     SchedulingPolicy* policy;
     // toate taskurile din sistem, nu le detinem
@@ -40,7 +43,7 @@ private:
 
 public:
     Scheduler();
-    Scheduler(SchedulingPolicy* policy);
+    Scheduler(SchedulingPolicy* policy, Stats* stats);
     Scheduler(Scheduler& sched);
     void setPolicy(SchedulingPolicy* p);
     void addTask(Task* task); // probabil citirea de aici o vom face ori de la un CSV ori de la un user, detaliu de implementare pe care l vom vedea ulterior

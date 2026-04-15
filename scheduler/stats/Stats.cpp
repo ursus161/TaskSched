@@ -44,10 +44,6 @@ void Stats::onRelease(int task_id) {
     per_task[task_id].onRelease();
 }
 
-void Stats::onDispatch(int) {
-    // voi decide mai tarziu daca implementez cv
-}
-
 void Stats::onPreempt(int task_id) {
     per_task[task_id].onPreempt();
     total_preemptions++;

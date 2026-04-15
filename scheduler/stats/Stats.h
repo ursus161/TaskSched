@@ -29,7 +29,6 @@ public:
 
     // in general modificatoare de stare a sistemului
     void onRelease(int task_id);
-    void onDispatch(int task_id);
     void onPreempt(int task_id);
     void onComplete(int task_id, int response_time);
     void onDeadlineMiss(int task_id);
