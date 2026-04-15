@@ -16,6 +16,11 @@ public:
     AperiodicTask(const AperiodicTask& other);
         
     ~AperiodicTask() override = default;
+    
+    AperiodicTask& operator=(const AperiodicTask& other);
+
+    friend std::ostream& operator<<(std::ostream& out, const AperiodicTask& at);
+    friend std::istream& operator>>(std::istream& in, AperiodicTask& at);
 
     bool isReadyAt(int current_time) const override;
     void release(int current_time) override;
