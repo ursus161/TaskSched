@@ -17,8 +17,7 @@ vector<Task*> buildTasks() {
         new PeriodicTask(2, "regular",    5,  3, 12, 12),
         new PeriodicTask(3, "heavy",     15,  6, 30, 30),
         new PeriodicTask(4, "tight",      8,  1, 4,  10),
-        new AperiodicTask(5, "alert",    20,  2, 5,  9),
-    //    new SporadicTask(5, "stergator", 15, 5, 10, 6, {3,13,15,22,39}),
+        new SporadicTask(5, "stergator", 15, 5, 10, 6, {3,13,15,22,39}),
         new AperiodicTask(6, "user_cmd", 12,  3, 8, 18),
         new SporadicTask(7, "interrupt", 18,  2, 4, 6, {7, 16, 28, 38, 50})
     };
@@ -66,7 +65,7 @@ int main() {
     cout << policies[best]->getName() << " (" << results[best].getCpuUtilization() << "%)\n";
 
     cout << "Fewest deadline misses: ";
-    best = 0;
+    best = 0;   
     for (size_t i = 1; i < results.size(); i++)
         if (results[i].getTotalDeadlineMisses() < results[best].getTotalDeadlineMisses()) best = i;
     cout << policies[best]->getName() << " (" << results[best].getTotalDeadlineMisses() << ")\n";

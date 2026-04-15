@@ -36,7 +36,7 @@ int TaskStats::getPreemptions() const { return preemptions; }
 int TaskStats::getTotalResponseTime() const { return total_response_time; }
 
 double TaskStats::getAverageResponseTime() const {
-    if (jobs_completed == 0) throw std::logic_error("Impartirea la zero nu este permisa!");
+    if (jobs_completed == 0) return 0.0;
     return static_cast<double>(total_response_time) / jobs_completed;
 }
 
