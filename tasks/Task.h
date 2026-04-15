@@ -45,6 +45,10 @@ public:
 
     virtual ~Task() = 0;
 
+    Task& operator=(const Task& other);
+
+    friend std::ostream& operator<<(std::ostream& out, const Task& t);
+    friend std::istream& operator>>(std::istream& in, Task& t);
     
     int getId() const;
     const string& getName() const;

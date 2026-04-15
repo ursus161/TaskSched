@@ -28,7 +28,7 @@ int Stats::getTotalDeadlineMisses() const { return total_deadline_misses; }
 
 double Stats::getCpuUtilization() const {
     int total = active_ticks + idle_ticks; 
-    if (total == 0) throw std::logic_error("Impartirea la zero nu este permisa!");
+    if (total == 0) return 0.0;
     return 100.0 * active_ticks / total;
 }
 

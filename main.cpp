@@ -60,10 +60,15 @@ int main() {
     cout << "\n=== Winners ===\n";
     cout << "Best CPU utilization: ";
     int best = 0;
-    for (size_t i = 1; i < results.size(); i++)
-        if (results[i].getCpuUtilization() > results[best].getCpuUtilization()) best = i;
-    cout << policies[best]->getName() << " (" << results[best].getCpuUtilization() << "%)\n";
+    int worst = results.size() - 1;
+    for (size_t i = 1; i < results.size(); i++){
+        if (results[i].getCpuUtilization() < results[worst].getCpuUtilization()) worst = i;
 
+        if (results[i].getCpuUtilization() > results[best].getCpuUtilization()) best = i;}
+
+    cout << policies[best]->getName() << " (" << results[best].getCpuUtilization() << "%)\n";
+    cout << "Worst CPU utilization: ";
+    cout<<policies[worst]->getName() << " (" << results[worst].getCpuUtilization() << "%)\n";
     cout << "Fewest deadline misses: ";
     best = 0;   
     for (size_t i = 1; i < results.size(); i++)

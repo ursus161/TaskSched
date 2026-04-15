@@ -22,9 +22,10 @@ struct PolicyComparator {
 class Scheduler {
 private:
 
+    SchedulingPolicy* policy;
+    
     Stats* stats;
 
-    SchedulingPolicy* policy;
     // toate taskurile din sistem, nu le detinem
     std::vector<Task*> tasks;
 
