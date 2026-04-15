@@ -1,68 +1,82 @@
 #include "tasks/PeriodicTask.h"
 #include "tasks/AperiodicTask.h"
+#include "tasks/SporadicTask.h"
+#include "scheduler/Scheduler.h"
+#include "scheduler/policies/PriorityPolicy.h"
+#include "scheduler/policies/RateMonotonicPolicy.h"
+#include "scheduler/policies/EDFPolicy.h"
 #include "scheduler/stats/Stats.h"
 #include <iostream>
+#include <vector>
+using namespace std;
+
+vector<Task*> buildTasks() {
+    return {
+
+        new PeriodicTask(1, "fast",       2,  2, 6,  6),
+        new PeriodicTask(2, "regular",    5,  3, 12, 12),
+        new PeriodicTask(3, "heavy",     15,  6, 30, 30),
+        new PeriodicTask(4, "tight",      8,  1, 4,  10),
+        new AperiodicTask(5, "alert",    20,  2, 5,  9),
+    //    new SporadicTask(5, "stergator", 15, 5, 10, 6, {3,13,15,22,39}),
+        new AperiodicTask(6, "user_cmd", 12,  3, 8, 18),
+        new SporadicTask(7, "interrupt", 18,  2, 4, 6, {7, 16, 28, 38, 50})
+    };
+}
 
 int main() {
-    // scenariu: simulare de 20 tickuri cu 3 taskuri
-    // sensor: periodic, perioada 5, wcet 2 -> joburi la t=0,5,10,15
-    // display: periodic, perioada 10, wcet 3 -> joburi la t=0,10
-    // button: aperiodic la t=7, wcet 2
+    vector<SchedulingPolicy*> policies = {
+        new PriorityPolicy(),
+        new RateMonotonicPolicy(),
+        new EDFPolicy()
+    };
 
-    Stats stats;
-    stats.registerTask(1, "sensor", "Periodic");
-    stats.registerTask(2, "display", "Periodic");
-    stats.registerTask(3, "button", "Aperiodic");
+    vector<Stats> results;
 
-    // t=0: sensor si display release-uite, sensor ruleaza (prioritate)
-    stats.onRelease(1);
-    stats.onRelease(2);
-    stats.onTick(true);   // t=0 sensor ruleaza
-    stats.onTick(true);   // t=1 sensor ruleaza
-    // sensor termina jobul 1, response time = 2
-    stats.onComplete(1, 2);
+    for (SchedulingPolicy* policy : policies) {
+        vector<Task*> tasks = buildTasks();
+        Stats stats;
+        for (Task* t : tasks) {
+            stats.registerTask(t->getId(), t->getName(), t->getType());
+        }
 
-    // t=2-4: display ruleaza 3 tickuri, termina
-    stats.onTick(true);
-    stats.onTick(true);
-    stats.onTick(true);
-    stats.onComplete(2, 5);  // a inceput la t=0, termina la t=5
+        Scheduler sched(policy, &stats);
+        for (Task* t : tasks) sched.addTask(t);
 
-    // t=5: sensor release job 2
-    stats.onRelease(1);
-    stats.onTick(true);
-    stats.onTick(true);
-    stats.onComplete(1, 2);
+        cout << "\n=== Running with " << policy->getName() << " ===\n";
+        sched.run(100);
 
-    // t=7: button release, preempteaza nimic (cpu era pe sensor care a terminat)
-    stats.onRelease(3);
-    stats.onTick(true);
-    stats.onTick(true);
-    stats.onComplete(3, 2);
+        results.push_back(stats);
 
-    // t=9: idle un tick
-    stats.onTick(false);
+        for (Task* t : tasks) delete t;
+    }
 
-    // t=10: sensor si display iar
-    stats.onRelease(1);
-    stats.onRelease(2);
-    stats.onTick(true);
-    stats.onTick(true);
-    stats.onComplete(1, 2);
-    // display preemptat de sensor la release-ul urmator
-    stats.onTick(true);
-    stats.onPreempt(2);
-    stats.onRelease(1);
-    stats.onTick(true);
-    stats.onTick(true);
-    stats.onComplete(1, 2);
+    // raport per algoritm
+    cout << "\n=== Final reports ===\n";
+    for (size_t i = 0; i < policies.size(); i++) {
+        cout << "\n[" << policies[i]->getName() << "]\n" << results[i];
+    }
 
-    // display nu mai apuca sa termine inainte de deadline
-    stats.onDeadlineMiss(2);
-    stats.onTick(true);
-    stats.onTick(true);
-    stats.onComplete(2, 10);
+    // comparatie pe metrici
+    cout << "\n=== Winners ===\n";
+    cout << "Best CPU utilization: ";
+    int best = 0;
+    for (size_t i = 1; i < results.size(); i++)
+        if (results[i].getCpuUtilization() > results[best].getCpuUtilization()) best = i;
+    cout << policies[best]->getName() << " (" << results[best].getCpuUtilization() << "%)\n";
 
-    std::cout << stats;
+    cout << "Fewest deadline misses: ";
+    best = 0;
+    for (size_t i = 1; i < results.size(); i++)
+        if (results[i].getTotalDeadlineMisses() < results[best].getTotalDeadlineMisses()) best = i;
+    cout << policies[best]->getName() << " (" << results[best].getTotalDeadlineMisses() << ")\n";
+
+    cout << "Fewest preemptions: ";
+    best = 0;
+    for (size_t i = 1; i < results.size(); i++)
+        if (results[i].getTotalPreemptions() < results[best].getTotalPreemptions()) best = i;
+    cout << policies[best]->getName() << " (" << results[best].getTotalPreemptions() << ")\n";
+
+    for (SchedulingPolicy* p : policies) delete p;
     return 0;
 }

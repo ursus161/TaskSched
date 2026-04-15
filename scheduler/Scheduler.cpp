@@ -59,38 +59,38 @@ void Scheduler::run(int duration) {
                                 
                         t->release(current_time); //devine disponibil ptr pq, imi reseteaza si toate datele taskului
                         ready_queue.push(t);
-                        stats->onRelease(t->getId());
+                        stats->onRelease(t->getId()); //increment la contorul intern
                 }
                             // deadline miss check pentru taskuri active
                 if (t->getState() != TaskState::Finished && t->getState() != TaskState::Inactive && current_time > t->getAbsoluteDeadline()) {
                             
-                        stats->onDeadlineMiss(t->getId());
-                        t->setState(TaskState::Finished);
-
+                        stats->onDeadlineMiss(t->getId()); //la fel, prelucrez statisticile in acest caz
+                      
+                        //marchez finished si ies 
+                        t->setState(TaskState::Finished); 
                         if (current_running == t) current_running = nullptr;
                 }
         }
-        //decide cine ruleaza  
+        //decizia de scheduling
                 if (!ready_queue.empty()) {
 
                     Task* top = ready_queue.top();
 
-                    if (current_running == nullptr || policy->isHigherPriority(top, current_running))  {  dispatch(top);  }
+                    if (current_running == nullptr || policy->isHigherPriority(top, current_running))  {  dispatch(top);  } //context switch
                 }
                         //executa 1 tick din taskul curent
                 if (current_running != nullptr) {
 
+                    
+                current_running->setRemainingTime(current_running->getRemainingTime() - 1);
 
-                int remainingTime = current_running->getRemainingTime();
-                current_running->setRemainingTime(remainingTime - 1);
-
-                stats->onTick(true);
+                stats->onTick(true); //adica acest task a fost activ in acest tick, util ptr cpu% and stuff like that
 
                 cout << "[t=" << current_time << "] running task "
                 << current_running->getId() << " ("
                 << current_running->getName() << ")" << endl;
                 
-                if (current_running->getRemainingTime() == 0) {
+                if (current_running->getRemainingTime() == 0) { //e gata jobul taskului
 
                         int response_time = (current_time + 1) - (current_running->getAbsoluteDeadline() - current_running->getDeadline());
 
@@ -99,8 +99,8 @@ void Scheduler::run(int duration) {
                         current_running->setState(TaskState::Finished);
                         current_running = nullptr;
                 }
-          } else {
-                        stats->onTick(false);
+          } else {//asta e cpu-idle path
+                        stats->onTick(false);   
                         cout << "[t=" << current_time << "] CPU idle" << endl;
                 }
          }
