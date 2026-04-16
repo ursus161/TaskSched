@@ -41,7 +41,7 @@ int main() {
 
         cout << "\n=== Running with " << policy->getName() << " ===\n";
         sched.run(100);
-        stats.exportToCSV("timeline_" + policy->getName() + ".csv");
+        stats.exportToCSV("scheduler/stats/csv/timeline_" + policy->getName() + ".csv");
 
         results.push_back(stats);
 

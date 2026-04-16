@@ -28,12 +28,6 @@ Task definitions are currently hardcoded in `main.cpp`.
 
 ## To-do
 
-**Short term:** statistics collection (deadline misses, response time, CPU utilization, preemption count), CSV timeline export with Gantt visualization.
+**Short term:** asynchronous logger on a dedicated thread, external configuration via file, schedulability analysis.
 
-**Medium term:** asynchronous logger on a dedicated thread, external configuration via file, schedulability analysis.
-
-**Long term:** multi-core scheduling with a load balancer.
-
-## Author
-
-Stefan, 1st year CS student at FMI Bucharest.
+**Medium term:** multi-core scheduling with a load balancer.
