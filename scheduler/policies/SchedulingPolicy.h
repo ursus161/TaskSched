@@ -24,7 +24,7 @@ public:
         return out;
     }
 
-    friend std::istream& operator>>(std::istream& in, SchedulingPolicy&) {
+    friend std::istream& operator>>(std::istream& in, SchedulingPolicy&) { 
         return in;  // nu citim nimic, clasa nu are niciun atribut
     }
 };

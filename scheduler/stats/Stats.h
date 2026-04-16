@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <iostream>
 #include <vector>
+#include "../tasks/Task.h"
 
 
 struct GanttRecord{
@@ -27,13 +28,19 @@ public:
     Stats(const Stats& other);
     Stats& operator=(const Stats& other);
     ~Stats() = default;
-
+    
+    
     int getActiveTicks() const;
     int getIdleTicks() const;
     int getTotalPreemptions() const;
     int getTotalDeadlineMisses() const;
     double getCpuUtilization() const;
     const std::unordered_map<int, TaskStats>& getPerTask() const;
+
+
+    //utilizarea teoretica a priori, utila pentru ratemonotonic pentru a verifica daca un sistem e supraincarcat (atinge maxim lim -> n (2^1/n -1) ~ 69%)
+    //asta garanteaza ca pana la o utilitate teoretica din acea constanta, nu voi avea deadline misses  
+    static double computeUtilization(const std::vector<Task*>& tasks);
 
     void registerTask(int task_id, const std::string& name, const std::string& type);
 

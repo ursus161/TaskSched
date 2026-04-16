@@ -20,6 +20,7 @@ Scheduler::Scheduler(SchedulingPolicy* policy, Stats* stats)
 
 Scheduler::Scheduler( const Scheduler& sched)
     : policy(sched.policy),
+      stats(sched.stats),
       tasks(sched.tasks),
       current_running(sched.current_running),
       current_time(sched.current_time),
@@ -83,6 +84,7 @@ void Scheduler::dispatch(Task* new_running) {
     task_start_time = current_time;
 }
 void Scheduler::run(int duration) {
+    if (!policy) return;
     for (current_time = 0; current_time < duration; current_time++) {
 
 

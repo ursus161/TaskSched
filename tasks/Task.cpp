@@ -67,6 +67,7 @@ const string& Task::getName() const { return name; }
 
 int Task::getPriority() const { return priority; }
 int Task::getDeadline() const { return deadline; }
+int Task::getWCET() const { return worstCaseExecutionTime;}
 
 TaskState Task::getState() const { return state; }
 int Task::getRemainingTime() const { return remaining_time; }

@@ -1,5 +1,5 @@
-#include "SchedulingPolicy.h"
 #pragma once
+#include "SchedulingPolicy.h"
 
 // Priority Scheduling clasic - prioritate statica (exact ceea ce implementasem in commit ul anterior)
 class PriorityPolicy : public SchedulingPolicy {

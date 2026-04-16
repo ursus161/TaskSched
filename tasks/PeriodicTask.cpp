@@ -9,7 +9,7 @@ PeriodicTask::PeriodicTask(int id, const string& name, int priority,
                  Task(id,name,priority,worstCaseExecutionTime,deadline),
 
                 period(period), 
-                first_release(0),
+                first_release(first_release),
                 jobs_released(0) {};
 
 PeriodicTask::PeriodicTask()

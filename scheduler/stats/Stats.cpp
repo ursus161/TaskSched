@@ -1,5 +1,6 @@
 #include "Stats.h"
 #include <fstream>
+#include "../tasks/PeriodicTask.h"
 Stats::Stats()
     : active_ticks(0), idle_ticks(0),
       total_preemptions(0), total_deadline_misses(0) {}
@@ -35,6 +36,27 @@ double Stats::getCpuUtilization() const {
 const std::unordered_map<int, TaskStats>& Stats::getPerTask() const {
     return per_task; // intoarce referinta la map-ul
 }
+
+//merita explorata diferenta dintre metoda computeUtilization si getCPUUtilization
+//cea din urma este masurata la runtime, active/total, este post-factum
+//pt metoda de aici, este un test teoretic inainte de runtime pt logica aplicatiei
+//niciun policy nu salveaza un U > 1.0, am misses garantate, U - cpu_util = cat am pierdut in missuri la deadline
+double Stats::computeUtilization(const std::vector<Task*>& tasks) {
+    double total = 0.0;
+    for (Task* t : tasks) {
+        // dynamic_cast pentru ca doar periodicele si sporadicele au perioada
+        // sporadicele mostenesc PeriodicTask, deci cast-ul prinde si pe ele
+        auto periodic = dynamic_cast<PeriodicTask*>(t);
+        if (!periodic) continue;  // skip aperiodic
+        
+        int period = periodic->getPeriod();
+        if (period <= 0) continue;  // sanity check
+        
+        total += (static_cast<double>(t->getWCET()) / period);
+    }
+    return total;
+}
+
 
 void Stats::registerTask(int task_id, const std::string& name, const std::string& type) {
     per_task[task_id] = TaskStats(name, type);

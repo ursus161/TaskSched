@@ -7,7 +7,7 @@ SporadicTask::SporadicTask(int id, const string& name, int priority,
                            const vector<int>& triggers)
 
     : Task(id, name, priority, worstCaseExecutionTime, deadline),
-      PeriodicTask(id, name, priority, worstCaseExecutionTime, deadline, minimumInterArrivalTime, first_release= 0),
+      PeriodicTask(id, name, priority, worstCaseExecutionTime, deadline, minimumInterArrivalTime, 0),
       AperiodicTask(id, name, priority, worstCaseExecutionTime, deadline, 0),
       minimumInterArrivalTime(minimumInterArrivalTime),
       last_activation(-minimumInterArrivalTime),

@@ -58,7 +58,7 @@ public:
     TaskState getState() const;
     int getRemainingTime() const;
     int getAbsoluteDeadline() const;
-
+    int getWCET() const;
 
     virtual bool isReadyAt(int current_time) const = 0; // daca un task e gata la un timp anume de a fi rulat pe cpu
     // a nu se confunda ready cu finished 

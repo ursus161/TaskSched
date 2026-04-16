@@ -9,17 +9,23 @@
 #include <iostream>
 #include <vector>
 using namespace std;
-
 vector<Task*> buildTasks() {
     return {
-        new PeriodicTask(1, "T1_Fast", 10, 1, 5, 5),
-        new PeriodicTask(2, "T2_Mid", 5, 2, 10, 10),
-        new PeriodicTask(3, "T3_Heavy", 2, 4, 20, 20),
-        new SporadicTask(4, "T4_Spor", 15, 2, 4, 10, {3, 18, 33, 45, 60}),
-        new AperiodicTask(5, "T5_Aper", 1, 3, 50, 12)       
+        new PeriodicTask(1,  "T_10ms",    20, 1,  10,  10),    
+        new PeriodicTask(2,  "T_15ms",    18, 2,  15,  15),    
+        new PeriodicTask(3,  "T_25ms",    15, 3,  25,  25),    
+        new PeriodicTask(4,  "T_50ms",    12, 5,  50,  50), 
+        new PeriodicTask(5,  "T_100ms",   10, 8,  100, 100),   
+        new PeriodicTask(6,  "T_200ms",   8,  12, 200, 200),   
+        new PeriodicTask(7,  "T_500ms",   5,  20, 500, 500),   
+        new SporadicTask(8,  "Btn_AC",    25, 2, 4, 30, {15, 78, 142, 230, 310, 450, 620, 800}),
+        new SporadicTask(9,  "Btn_Horn",  30, 1, 2, 50, {33, 120, 200, 350, 500, 680, 900}),
+        new SporadicTask(10, "Sens_Temp", 22, 3, 6, 80, {40, 180, 350, 520, 700}),
+        new AperiodicTask(11, "Boot_Init",    1, 5,  20,  5),
+        new AperiodicTask(12, "Firmware_Upd", 2, 10, 100, 250),
+        new AperiodicTask(13, "Diag_Check",   3, 8,  50,  600)
     };
 }
-
 int main() {
     vector<SchedulingPolicy*> policies = {
         new PriorityPolicy(),
@@ -40,7 +46,7 @@ int main() {
         for (Task* t : tasks) sched.addTask(t);
 
         cout << "\n=== Running with " << policy->getName() << " ===\n";
-        sched.run(100);
+        sched.run(1000);
         stats.exportToCSV("scheduler/stats/csv/timeline_" + policy->getName() + ".csv");
 
         results.push_back(stats);
