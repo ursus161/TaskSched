@@ -1,4 +1,5 @@
 #include "SporadicTask.h"
+#include <iostream>
 using namespace std;
 
 SporadicTask::SporadicTask(int id, const string& name, int priority,
@@ -37,6 +38,47 @@ bool SporadicTask::isReadyAt(int current_time) const {
     if (current_time < triggers[next_trigger_index]) return false;
     if (current_time - last_activation < minimumInterArrivalTime) return false;
     return true;
+}
+
+
+SporadicTask& SporadicTask::operator=(const SporadicTask& other) {
+    if (this == &other) return *this;
+    Task::operator=(other);              // baza
+    PeriodicTask::operator=(other);      // copiaza partea de PeriodicTask
+    AperiodicTask::operator=(other);     // copiaza partea de AperiodicTask
+
+    minimumInterArrivalTime = other.minimumInterArrivalTime;
+    last_activation = other.last_activation;
+    triggers = other.triggers;
+    next_trigger_index = other.next_trigger_index;
+
+    return *this;
+}
+
+std::ostream& operator<<(std::ostream& out, const SporadicTask& st) {
+    out << static_cast<const Task&>(st)
+        << " period=" << st.period
+        << " arrival=" << st.arrival_time
+        << " MIT=" << st.minimumInterArrivalTime
+        << " triggers=" << st.triggers.size();
+    return out;
+}
+
+std::istream& operator>>(std::istream& in, SporadicTask& st) {
+    in >> static_cast<Task&>(st)
+       >> st.period
+       >> st.arrival_time
+       >> st.minimumInterArrivalTime;
+    
+    int n;
+    in >> n;
+    st.triggers.clear();
+    for (int i = 0; i < n; i++) {
+        int trigger;
+        in >> trigger;
+        st.triggers.push_back(trigger);
+    }
+    return in;
 }
 
 void SporadicTask::release(int current_time) {

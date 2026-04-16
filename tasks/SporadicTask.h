@@ -23,6 +23,11 @@ public:
     SporadicTask();
     ~SporadicTask() override = default;
 
+    SporadicTask& operator=(const SporadicTask& other);
+
+    friend std::ostream& operator<<(std::ostream& out, const SporadicTask& st);
+    friend std::istream& operator>>(std::istream& in, SporadicTask& st);
+
     bool isReadyAt(int current_time) const override;
     void release(int current_time) override;
     string getType() const override;

@@ -25,7 +25,36 @@ Scheduler::Scheduler(Scheduler& sched)
       current_time(sched.current_time),
       ready_queue(sched.ready_queue) {}
 
+   
       
+Scheduler& Scheduler::operator=(const Scheduler& other) {
+    if (this == &other) return *this;
+    policy = other.policy;
+    stats = other.stats;
+    tasks = other.tasks;
+    current_running = other.current_running;
+    current_time = other.current_time;
+    ready_queue = other.ready_queue;
+    return *this;
+}
+
+std::ostream& operator<<(std::ostream& out, const Scheduler& sched) {
+    out << "Scheduler["
+        << "algorithm=" << (sched.policy ? sched.policy->getName() : "none")
+        << " time=" << sched.current_time
+        << " tasks=" << sched.tasks.size()
+        << " running=" << (sched.current_running ? sched.current_running->getName() : "idle")
+        << "]";
+    return out;
+}
+
+std::istream& operator>>(std::istream& in, Scheduler& sched) {
+    // nu prea are sens sa citesti un scheduler intreg de la tastatura
+    // citesti cate taskuri apoi doar numarul lor (taskurile se adauga cu addTask)
+    return in;
+}
+
+
 void Scheduler::addTask(Task* task) {
     tasks.push_back(task); //adaug in pq
 }
@@ -81,7 +110,7 @@ void Scheduler::run(int duration) {
                         //executa 1 tick din taskul curent
                 if (current_running != nullptr) {
 
-                    
+
                 current_running->setRemainingTime(current_running->getRemainingTime() - 1);
 
                 stats->onTick(true); //adica acest task a fost activ in acest tick, util ptr cpu% and stuff like that

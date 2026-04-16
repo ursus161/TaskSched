@@ -23,7 +23,7 @@ class Scheduler {
 private:
 
     SchedulingPolicy* policy;
-    
+
     Stats* stats;
 
     // toate taskurile din sistem, nu le detinem
@@ -46,6 +46,13 @@ public:
     Scheduler();
     Scheduler(SchedulingPolicy* policy, Stats* stats);
     Scheduler(Scheduler& sched);
+    Scheduler& operator=(const Scheduler& other);
+    ~Scheduler() = default;
+
+    friend std::ostream& operator<<(std::ostream& out, const Scheduler& sched);
+    friend std::istream& operator>>(std::istream& in, Scheduler& sched);
+
+    
     void setPolicy(SchedulingPolicy* p);
     void addTask(Task* task); // probabil citirea de aici o vom face ori de la un CSV ori de la un user, detaliu de implementare pe care l vom vedea ulterior
     void run(int duration); // main logic shall be here
