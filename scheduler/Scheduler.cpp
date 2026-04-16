@@ -70,6 +70,8 @@ void Scheduler::setPolicy(SchedulingPolicy* p) {
 
 void Scheduler::dispatch(Task* new_running) {   
     if (current_running != nullptr) {
+        stats->recordExecution(current_running->getName(), task_start_time, current_time);
+
         current_running->setState(TaskState::Ready);
         ready_queue.push(current_running);//asta e partea de preemptie
     }
@@ -77,6 +79,8 @@ void Scheduler::dispatch(Task* new_running) {
     current_running->setState(TaskState::Running); // si asta e partea de dispatch      
     ready_queue.pop();
     stats->onPreempt(current_running->getId());   
+
+    task_start_time = current_time;
 }
 
 void Scheduler::run(int duration) {
@@ -124,6 +128,8 @@ void Scheduler::run(int duration) {
                         int response_time = (current_time + 1) - (current_running->getAbsoluteDeadline() - current_running->getDeadline());
 
                         stats->onComplete(current_running->getId(), response_time);
+
+                        stats->recordExecution(current_running->getName(), task_start_time, current_time + 1);
 
                         current_running->setState(TaskState::Finished);
                         current_running = nullptr;

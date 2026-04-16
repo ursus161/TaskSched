@@ -12,14 +12,11 @@ using namespace std;
 
 vector<Task*> buildTasks() {
     return {
-
-        new PeriodicTask(1, "fast",       2,  2, 6,  6),
-        new PeriodicTask(2, "regular",    5,  3, 12, 12),
-        new PeriodicTask(3, "heavy",     15,  6, 30, 30),
-        new PeriodicTask(4, "tight",      8,  1, 4,  10),
-        new SporadicTask(5, "stergator", 15, 5, 10, 6, {3,13,15,22,39}),
-        new AperiodicTask(6, "user_cmd", 12,  3, 8, 18),
-        new SporadicTask(7, "interrupt", 18,  2, 4, 6, {7, 16, 28, 38, 50})
+        new PeriodicTask(1, "T1_Fast", 10, 2, 5, 5),
+        new PeriodicTask(2, "T2_Mid", 5, 4, 8, 15),
+        new PeriodicTask(3, "T3_Heavy", 2, 6, 20, 20),
+        new SporadicTask(4, "T4_Spor", 15, 2, 4, 10, {3, 18, 33, 45, 60}),
+        new AperiodicTask(5, "T5_Aper", 1, 3, 50, 12)       
     };
 }
 
@@ -44,6 +41,7 @@ int main() {
 
         cout << "\n=== Running with " << policy->getName() << " ===\n";
         sched.run(100);
+        stats.exportToCSV("timeline_" + policy->getName() + ".csv");
 
         results.push_back(stats);
 

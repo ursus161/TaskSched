@@ -42,6 +42,8 @@ private:
 
     void dispatch(Task* new_running);
 
+    int task_start_time =0;
+
 public:
     Scheduler();
     Scheduler(SchedulingPolicy* policy, Stats* stats);

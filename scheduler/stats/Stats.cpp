@@ -1,5 +1,5 @@
 #include "Stats.h"
-#include <exception>
+#include <fstream>
 Stats::Stats()
     : active_ticks(0), idle_ticks(0),
       total_preemptions(0), total_deadline_misses(0) {}
@@ -62,6 +62,23 @@ void Stats::onTick(bool cpu_active) {
     if (cpu_active) active_ticks++;
     else idle_ticks++;
 }
+
+void Stats::recordExecution(const std::string& task_name, int start, int end) {
+    if (start < end) { 
+        timeline.push_back({task_name, start, end});
+    }
+}
+
+void Stats::exportToCSV(const std::string& filename) const {
+    std::ofstream fout(filename);
+    fout << "Task,Start,End\n"; // orice csv are un header
+    for (const auto& rec : timeline) {
+        fout << rec.task_name << "," << rec.start_time << "," << rec.end_time << "\n";
+    }
+    fout.close();
+}
+
+
 
 std::ostream& operator<<(std::ostream& out, const Stats& s) {
     out << "=== Simulation Report ===\n";
