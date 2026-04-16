@@ -9,4 +9,17 @@ public:
     }
 
     std::string getName() const override { return "Priority"; }
+    
+    PriorityPolicy() = default;
+    PriorityPolicy(const PriorityPolicy& other) = default;
+    PriorityPolicy& operator=(const PriorityPolicy& other) = default;
+
+    friend std::ostream& operator<<(std::ostream& out, const PriorityPolicy& p )  {
+        out << p.getName();
+        return out;
+    }
+    friend std::istream& operator>>(std::istream& in, PriorityPolicy& p)  {
+        return in;
+    }
+
 };

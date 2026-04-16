@@ -18,4 +18,16 @@ public:
     }   
 
     std::string getName() const override { return "Rate Monotonic"; }
+
+    RateMonotonicPolicy() = default;
+    RateMonotonicPolicy(const RateMonotonicPolicy& other) = default;
+    RateMonotonicPolicy& operator=(const RateMonotonicPolicy& other) = default;
+
+    friend std::ostream& operator<<(std::ostream& out, const RateMonotonicPolicy& p) {
+        out << p.getName();
+        return out;
+    }
+    friend std::istream& operator>>(std::istream& in, RateMonotonicPolicy&) {
+        return in;
+    }
 };

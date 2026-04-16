@@ -14,5 +14,18 @@ public:
     virtual bool isHigherPriority(Task* a, Task* b) const = 0;
 
     virtual std::string getName() const = 0;
+
+    SchedulingPolicy() = default;
+    SchedulingPolicy(const SchedulingPolicy& other) = default;
+    SchedulingPolicy& operator=(const SchedulingPolicy& other) = default;
+
+    friend std::ostream& operator<<(std::ostream& out, const SchedulingPolicy& p) {
+        out << p.getName();
+        return out;
+    }
+
+    friend std::istream& operator>>(std::istream& in, SchedulingPolicy&) {
+        return in;  // nu citim nimic, clasa nu are niciun atribut
+    }
 };
 
