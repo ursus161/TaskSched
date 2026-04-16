@@ -1,5 +1,5 @@
 #include "SchedulingPolicy.h"
-
+#pragma once
 // rate monotonic --> perioada mai mica = prioritate mai mare, practic prioritizez cel care dureaza cel mai putin
 // merge doar pe taskuri periodice, pt ca practic am prioritatea invers proportionala cu perioada
 // daca n am perioada nu am prioritate, ceea ce e imposibil
