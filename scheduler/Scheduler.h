@@ -47,7 +47,7 @@ private:
 public:
     Scheduler();
     Scheduler(SchedulingPolicy* policy, Stats* stats);
-    Scheduler(Scheduler& sched);
+    Scheduler(const Scheduler& sched) ;
     Scheduler& operator=(const Scheduler& other);
     ~Scheduler() = default;
 

@@ -11,7 +11,8 @@ enum class TaskState { // starile in care pot fi fiecare task, ready running si 
     Ready,
     Running,
     Blocked,
-    Finished
+    Finished,
+    Missed
 };
 
 class Task {

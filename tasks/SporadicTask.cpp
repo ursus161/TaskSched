@@ -87,6 +87,17 @@ void SporadicTask::release(int current_time) {
     state = TaskState::Ready;
     last_activation = current_time;
     next_trigger_index++;
+
+     // skip peste trigger-ele care incalca MIT fata de activarea curenta
+     //inainte aveam un bug intampinat in rulari
+     //la un task sporadic daca aveam apasari una dupa alta prea rapide (nu trecea MIT) nu se ignora apasarea defectuoasa ( cum este design ul aplicatiei ),
+     //ci ar fi fost la randul sau alt eveniment care se punea in pq
+    while (next_trigger_index < (int)triggers.size() &&
+           triggers[next_trigger_index] - last_activation < minimumInterArrivalTime) {
+        next_trigger_index++;
+    }
+
+
 }
 
 string SporadicTask::getType() const {

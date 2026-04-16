@@ -12,9 +12,9 @@ using namespace std;
 
 vector<Task*> buildTasks() {
     return {
-        new PeriodicTask(1, "T1_Fast", 10, 2, 5, 5),
-        new PeriodicTask(2, "T2_Mid", 5, 4, 8, 15),
-        new PeriodicTask(3, "T3_Heavy", 2, 6, 20, 20),
+        new PeriodicTask(1, "T1_Fast", 10, 1, 5, 5),
+        new PeriodicTask(2, "T2_Mid", 5, 2, 10, 10),
+        new PeriodicTask(3, "T3_Heavy", 2, 4, 20, 20),
         new SporadicTask(4, "T4_Spor", 15, 2, 4, 10, {3, 18, 33, 45, 60}),
         new AperiodicTask(5, "T5_Aper", 1, 3, 50, 12)       
     };
