@@ -81,7 +81,7 @@ void Scheduler::dispatch(Task* new_running) {
     current_running->setState(TaskState::Running); // si asta e partea de dispatch      
     ready_queue.pop();
     stats->onPreempt(current_running->getId());   
-    event_queue->push({EventType::Dispatch, current_time, current_running->getId()}); //adaug in event_queue evenimentul cand este dat jos din capul pq
+    event_queue->push({EventType::Dispatch, current_time, current_running->getId(), current_running->getName()}); //adaug in event_queue evenimentul cand este dat jos din capul pq
     task_start_time = current_time;
 }
 void Scheduler::run(int duration) {
@@ -97,7 +97,7 @@ void Scheduler::run(int duration) {
              
                 t->release(current_time); //devine disponibil ptr pq, imi reseteaza si toate datele taskului
               
-                event_queue->push({EventType::Release, current_time, t->getId()});
+                event_queue->push({EventType::Release, current_time, t->getId(), t->getName()});
                 ready_queue.push(t);
              
              
@@ -108,7 +108,7 @@ void Scheduler::run(int duration) {
             // soft real-time: taskul continua sa ruleze dupa miss, doar inregistram in statistici o singura data
             if (t->getState() != TaskState::Finished && t->getState() != TaskState::Inactive 
                 && t->getState() != TaskState::Missed && current_time > t->getAbsoluteDeadline()) {
-                event_queue->push({EventType::DeadlineMiss, current_time, t->getId()});
+                event_queue->push({EventType::DeadlineMiss, current_time, t->getId(), t->getName()});
                 
                 stats->onDeadlineMiss(t->getId()); //la fel, prelucrez statisticile in acest caz
                 t->setState(TaskState::Missed); //marchez starea ca sa nu mai raportez acelasi miss la tick-urile urmatoare
@@ -133,7 +133,7 @@ void Scheduler::run(int duration) {
                  << current_running->getName() << ")" << endl;
             
             if (current_running->getRemainingTime() == 0) { //e gata jobul taskului
-                event_queue->push({EventType::Complete, current_time, current_running->getId()});
+                event_queue->push({EventType::Complete, current_time, current_running->getId(), current_running->getName()});
               
               
                 int response_time = (current_time + 1) - (current_running->getAbsoluteDeadline() - current_running->getDeadline());
@@ -147,6 +147,6 @@ void Scheduler::run(int duration) {
             cout << "[t=" << current_time << "] CPU idle" << endl;
         }
     }
-    event_queue->push({EventType::EndOfSimulation, current_time, -1}); // -1 la task id pt ca nu mai ruleaza nimic
+    event_queue->push({EventType::EndOfSimulation, current_time, -1, ""}); // -1 la task id pt ca nu mai ruleaza nimic
               
 }

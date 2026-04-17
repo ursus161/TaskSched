@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 
 // tipurile de evenimente care pot circula prin queue
 // fiecare corespunde unui moment interesant din simulare
@@ -20,4 +20,6 @@ struct Event {
     int time;         // tick-ul cand s-a intamplat
     int task_id;      // id-ul taskului implicat, -1 daca nu se aplica
                     // vreau sa stiu la fiecare lucru cum s a miscat si cum a progresat
+    std::string task_name;
 };
+ 
