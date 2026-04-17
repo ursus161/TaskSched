@@ -1,9 +1,10 @@
 CXX = g++
-CXXFLAGS = -std=c++23 -Wall -g -Itasks -Ischeduler -Ischeduler/stats
+CXXFLAGS = -std=c++23 -Wall -g -Itasks -Ischeduler -Ischeduler/stats -pthread
 
 SRCS = tasks/Task.cpp tasks/PeriodicTask.cpp tasks/AperiodicTask.cpp \
        tasks/SporadicTask.cpp \
        scheduler/Scheduler.cpp \
+	   scheduler/stats/EventQueue.cpp \
        scheduler/stats/TaskStats.cpp scheduler/stats/Stats.cpp \
        main.cpp
 

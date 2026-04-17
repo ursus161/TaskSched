@@ -13,6 +13,7 @@ TaskSched models the logic of an RTOS scheduler. You define a task set (periodic
 **Scheduler.** Single-core, preemptive, discrete-time simulation loop with task release, preemption, dispatch, and completion handling. Tasks are not owned by the scheduler — the caller manages their lifetime.
 
 **Scheduling policies (Strategy pattern).** The algorithm is decoupled from the scheduler via an abstract `SchedulingPolicy` base:
+
 - `PriorityPolicy` — fixed priority
 - `RateMonotonicPolicy` — priority derived from period
 - `EDFPolicy` — earliest absolute deadline first

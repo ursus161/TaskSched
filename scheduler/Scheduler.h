@@ -5,6 +5,7 @@
 #include <queue>
 #include "policies/SchedulingPolicy.h"
 #include "stats/Stats.h"
+#include "stats/EventQueue.h"
 // pentru comparat taskuri dupa prioritate
 // returneaza true daca a are prioritate mai mica decat b
 // priority_queue e max-heap, deci cel cu prioritate mai mare iese primul
@@ -26,6 +27,7 @@ private:
 
     Stats* stats;
 
+    EventQueue* event_queue;
     // toate taskurile din sistem, nu le detinem
     std::vector<Task*> tasks;
 
@@ -46,7 +48,7 @@ private:
 
 public:
     Scheduler();
-    Scheduler(SchedulingPolicy* policy, Stats* stats);
+    Scheduler(SchedulingPolicy* policy, Stats* stats, EventQueue* event_queue);
     Scheduler(const Scheduler& sched) ;
     Scheduler& operator=(const Scheduler& other);
     ~Scheduler() = default;
