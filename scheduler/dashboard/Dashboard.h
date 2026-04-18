@@ -25,7 +25,7 @@ private:
     
     //map de la task_id la taskrow
     std::unordered_map<int, TaskRow> rows;
-
+    int getTerminalWidth() const;
 public:
 
     Dashboard();
@@ -43,6 +43,6 @@ public:
 
     //deseneaza starea interna si da update pe terminal
     void render(); 
-    
+
     void run();  // loop care citeste events pana primeste EndOfSimulation ( optiune din enum ul de events)
 };

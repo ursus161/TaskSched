@@ -1,6 +1,7 @@
 #include "Dashboard.h"
 #include <iostream>
-
+#include <sys/ioctl.h>
+#include <unistd.h>
 
 Dashboard::Dashboard() : queue(nullptr) {}
 Dashboard::Dashboard(EventQueue* q) : queue(q) {}
@@ -21,6 +22,13 @@ std::istream& operator>>(std::istream& in, Dashboard& d) {
     return in;  // nimic de citit
 }
 
+int Dashboard::getTerminalWidth() const {
+    struct winsize w;
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+        return w.ws_col;  // numarul de coloane
+    }
+    return 80;  // fallback default
+}
 
 void Dashboard::run() {
     int last_time = -999;
@@ -93,10 +101,15 @@ void Dashboard::processEvent(const Event& e) {
 
 
 void Dashboard::render() {
-    std::cout << "\033[2J\033[H";  // clear screen + cursor home ca sa reincep scrierea de date
+    std::cout << "\033[H\033[J" << std::flush;  // clear screen + cursor home ca sa reincep scrierea de date
     std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-    std::string padding = "                                                              ";
 
+    const int content_width = 50;  // latimea aprox 
+    int term_width = getTerminalWidth();
+    int  padding_size = 0 * (padding_size < 0) + ((term_width - content_width) / 2)*(padding_size >= 0);
+    
+    std::string padding(padding_size, ' ');  //padding size spatii
+    
 
   std::cout << padding ;  std::cout << "=== TaskSched Dashboard ===\n";
     std::cout << padding ;std::cout << "Time: " << current_time << " tick\n";
