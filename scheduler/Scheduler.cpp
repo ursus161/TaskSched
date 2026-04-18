@@ -1,5 +1,7 @@
 #include "Scheduler.h"
 #include "Task.h"
+#include <thread>
+#include <chrono>
 #include <iostream>
 using namespace std;
 
@@ -76,6 +78,9 @@ void Scheduler::dispatch(Task* new_running) {
 
         current_running->setState(TaskState::Ready);
         ready_queue.push(current_running);//asta e partea de preemptie
+        
+        event_queue->push({EventType::Preempt, current_time, current_running->getId(), current_running->getName()});
+    
     }
     current_running = new_running;
     current_running->setState(TaskState::Running); // si asta e partea de dispatch      
@@ -83,9 +88,14 @@ void Scheduler::dispatch(Task* new_running) {
     stats->onPreempt(current_running->getId());   
     event_queue->push({EventType::Dispatch, current_time, current_running->getId(), current_running->getName()}); //adaug in event_queue evenimentul cand este dat jos din capul pq
     task_start_time = current_time;
+    
 }
+
+
+
 void Scheduler::run(int duration) {
     if (!policy) return;
+    event_queue->push({EventType::Tick, -1, -1, "SCHED_START"});
     for (current_time = 0; current_time < duration; current_time++) {
 
 
@@ -127,10 +137,7 @@ void Scheduler::run(int duration) {
         if (current_running != nullptr) {
             current_running->setRemainingTime(current_running->getRemainingTime() - 1);
             stats->onTick(true); //adica acest task a fost activ in acest tick, util ptr cpu% and stuff like that
-
-            cout << "[t=" << current_time << "] running task "
-                 << current_running->getId() << " ("
-                 << current_running->getName() << ")" << endl;
+ 
             
             if (current_running->getRemainingTime() == 0) { //e gata jobul taskului
                 event_queue->push({EventType::Complete, current_time, current_running->getId(), current_running->getName()});
@@ -144,8 +151,10 @@ void Scheduler::run(int duration) {
             }   
         } else { //asta e cpu-idle path
             stats->onTick(false);
-            cout << "[t=" << current_time << "] CPU idle" << endl;
         }
+            event_queue->push({EventType::Tick, current_time, -1, "idle"});
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(750)); 
     }
     event_queue->push({EventType::EndOfSimulation, current_time, -1, ""}); // -1 la task id pt ca nu mai ruleaza nimic
               
