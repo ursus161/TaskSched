@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <iomanip>
 
 Dashboard::Dashboard() : queue(nullptr) {}
 Dashboard::Dashboard(EventQueue* q) : queue(q) {}
@@ -23,6 +24,7 @@ std::istream& operator>>(std::istream& in, Dashboard& d) {
 }
 
 int Dashboard::getTerminalWidth() const {
+    //unix system based instructions, va urma si un fix pentru OS Windows
     struct winsize w;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
         return w.ws_col;  // numarul de coloane
@@ -99,36 +101,38 @@ void Dashboard::processEvent(const Event& e) {
     }
 }
 
-
 void Dashboard::render() {
     std::cout << "\033[H\033[J" << std::flush;  // clear screen + cursor home ca sa reincep scrierea de date
     std::cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-
     const int content_width = 50;  // latimea aprox 
     int term_width = getTerminalWidth();
-    int  padding_size = 0 * (padding_size < 0) + ((term_width - content_width) / 2)*(padding_size >= 0);
-    
-    std::string padding(padding_size, ' ');  //padding size spatii
-    
 
-  std::cout << padding ;  std::cout << "=== TaskSched Dashboard ===\n";
+    //se bazeaza pe compilatoarele moderne pe cmov, still branchless insa inainte aveam probleme de UB
+    int  padding_size = std::max(0,(term_width - content_width) / 2);
+    std::string padding(padding_size, ' ');  //padding size spatii
+
+    std::cout << padding ;  std::cout << "=== TaskSched Dashboard ===\n";   
     std::cout << padding ;std::cout << "Time: " << current_time << " tick\n";
     std::cout << padding ;std::cout << "Running: " << running_name << "\n";
- std::cout << padding ;   std::cout << "----------------------------------------\n";
-  std::cout << padding ;  std::cout << "ID  Name       State     Rel  Comp  Miss\n";
-  std::cout << padding ;  std::cout << "----------------------------------------\n";
+    std::cout << padding ;   std::cout << "----------------------------------------\n";
+    std::cout << padding << std::left
+              << std::setw(4) << "ID"
+              << std::setw(12) << "Name"
+              << std::setw(12) << "State"
+              << std::setw(6) << "Rel"
+              << std::setw(6) << "Comp"
+              << std::setw(6) << "Miss" << "\n";
+    std::cout << padding ;   std::cout << "----------------------------------------\n";
     
     for (const auto& [id, row] : rows) {//afisez datele 
-        std::cout << padding 
-                  <<  id << "   " 
-                  << row.name << "     "
-                  << row.state << "    "
-                  << row.releases << "    "
-                  << row.completes << "    "
-                  << row.misses << "\n";
+        std::cout << padding << std::left
+                  << std::setw(4) << id
+                  << std::setw(12) << row.name
+                  << std::setw(12) << row.state
+                  << std::setw(6) << row.releases
+                  << std::setw(6) << row.completes
+                  << std::setw(6) << row.misses << "\n";
     }
-    
     std::cout << std::flush;//golesc bufferul si fortez scrierea pe ecran
     //imi scria cu interziere fara flush si aveam probleme de sincronizare
-
 }
