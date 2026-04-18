@@ -32,6 +32,13 @@ int Dashboard::getTerminalWidth() const {
     return 80;  // fallback default
 }
 
+std::string Dashboard::colorForState(const std::string& state) {
+    if (state == "Running")  return "\033[32m";  // verde
+    if (state == "Ready")    return "\033[33m";  // galben
+    if (state == "Missed")   return "\033[31m";  // rosu
+    return "\033[0m";  // default   
+}
+
 void Dashboard::run() {
     int last_time = -999;
     while (true) {  
@@ -90,7 +97,11 @@ void Dashboard::processEvent(const Event& e) {
                 running_name = "idle";
             }
             break;
-            
+        
+        case EventType::Tick:
+            if (running_id == -1) idle_ticks++; //folosesc la cpu% 
+            break;
+
         case EventType::DeadlineMiss:
             rows[e.task_id].misses++;
             rows[e.task_id].state = "Missed";
@@ -111,8 +122,14 @@ void Dashboard::render() {
     int  padding_size = std::max(0,(term_width - content_width) / 2);
     std::string padding(padding_size, ' ');  //padding size spatii
 
-    std::cout << padding ;  std::cout << "=== TaskSched Dashboard ===\n";   
-    std::cout << padding ;std::cout << "Time: " << current_time << " tick\n";
+    std::cout << padding << "\033[1;36m=== Task Scheduler Dashboard ===\033[0m\n";
+
+    int total = std::max(1, current_time + 1);
+    int active = std::max(0, total - idle_ticks);
+    double cpu_pct = 100.0 * active / total;
+
+    std::cout << padding << "Time: " << current_time << " tick  |  CPU: " 
+            << std::fixed << std::setprecision(1) << cpu_pct << "%\n";
     std::cout << padding ;std::cout << "Running: " << running_name << "\n";
     std::cout << padding ;   std::cout << "----------------------------------------\n";
     std::cout << padding << std::left
@@ -124,15 +141,17 @@ void Dashboard::render() {
               << std::setw(6) << "Miss" << "\n";
     std::cout << padding ;   std::cout << "----------------------------------------\n";
     
-    for (const auto& [id, row] : rows) {//afisez datele 
-        std::cout << padding << std::left
-                  << std::setw(4) << id
-                  << std::setw(12) << row.name
-                  << std::setw(12) << row.state
-                  << std::setw(6) << row.releases
-                  << std::setw(6) << row.completes
-                  << std::setw(6) << row.misses << "\n";
-    }
+    for (const auto& [id, row] : rows) {
+            std::cout << padding << std::left
+                    << std::setw(4) << id
+                    << std::setw(12) << row.name
+                    << colorForState(row.state)
+                    << std::setw(12) << row.state
+                    << "\033[0m"  // reset dupa state
+                    << std::setw(6) << row.releases
+                    << std::setw(6) << row.completes
+                    << std::setw(6) << row.misses << "\n";
+        }
     std::cout << std::flush;//golesc bufferul si fortez scrierea pe ecran
     //imi scria cu interziere fara flush si aveam probleme de sincronizare
 }

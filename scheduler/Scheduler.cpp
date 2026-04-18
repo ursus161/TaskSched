@@ -95,7 +95,6 @@ void Scheduler::dispatch(Task* new_running) {
 
 void Scheduler::run(int duration) {
     if (!policy) return;
-    event_queue->push({EventType::Tick, -1, -1, "SCHED_START"});
     for (current_time = 0; current_time < duration; current_time++) {
 
 

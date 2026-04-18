@@ -30,7 +30,7 @@ int main() {
          new SporadicTask(10, "Sens_Temp", 22, 3, 6, 80, {40, 180, 350, 520, 700}),
          new AperiodicTask(11, "Boot_Init",    1, 5,  20,  5),
           new AperiodicTask(12, "Firmware_Upd", 2, 10, 100, 250),
-        new AperiodicTask(13, "Diag_Check",   3, 8,  50,  600)
+        new AperiodicTask(13, "Diag_Check",   3, 8,  50,  600)  
     };
 
     for (Task* t : tasks) {

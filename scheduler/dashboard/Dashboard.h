@@ -22,10 +22,11 @@ private:
     int current_time = 0;
     int running_id = -1;
     std::string running_name = "idle"; //ce ruleaza activ acum
-    
+    int idle_ticks = 0;
     //map de la task_id la taskrow
     std::unordered_map<int, TaskRow> rows;
     int getTerminalWidth() const;
+    std::string colorForState(const std::string& state);
 public:
 
     Dashboard();
