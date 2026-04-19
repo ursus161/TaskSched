@@ -47,7 +47,7 @@ void Dashboard::run() {
         // daca time s-a schimbat, desenez STAREA VECHEA (pentru last_time)
         if (e.time != last_time && last_time >= 0) {
             render();
-            std::this_thread::sleep_for(std::chrono::milliseconds(700));  // pauza doar cand desenez
+           /// std::this_thread::sleep_for(std::chrono::milliseconds(700));  // pauza doar cand desenez
         }
         
         processEvent(e);       // dupa render, updatez starea pentru noul time
@@ -99,7 +99,7 @@ void Dashboard::processEvent(const Event& e) {
             break;
         
         case EventType::Tick:
-            if (running_id == -1) idle_ticks++; //folosesc la cpu% 
+            if (e.time > 0 && e.task_id == 0) idle_ticks++; //folosesc la cpu% 
             break;
 
         case EventType::DeadlineMiss:
