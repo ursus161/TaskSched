@@ -61,6 +61,7 @@ void Dashboard::run() {
 }
 
 void Dashboard::processEvent(const Event& e) {
+    if (e.type == EventType::EndOfSimulation) return;
     current_time = e.time;
     
     // daca e primul event pentru task-ul asta, initializeaza-i numele ( implicit randul in UM)
@@ -134,7 +135,7 @@ void Dashboard::render() {
     int active = std::max(0, total - idle_ticks);
     double cpu_pct = 100.0 * active / total;
 
-    std::cout << padding << "Time: " << current_time << " tick  |  CPU: " 
+    std::cout << padding << "Time: " << current_time + 1 << " tick  |  CPU: " 
             << std::fixed << std::setprecision(1) << cpu_pct << "%\n";
     std::cout << padding ;std::cout << "Running: " << running_name << "\n";
     std::cout << padding ;   std::cout << "----------------------------------------\n";

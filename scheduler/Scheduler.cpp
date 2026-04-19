@@ -24,6 +24,7 @@ Scheduler::Scheduler(SchedulingPolicy* policy, Stats* stats, EventQueue* event_q
 Scheduler::Scheduler( const Scheduler& sched)
     : policy(sched.policy),
       stats(sched.stats),
+      event_queue(sched.event_queue),
       tasks(sched.tasks),
       current_running(sched.current_running),
       current_time(sched.current_time),
@@ -72,20 +73,19 @@ void Scheduler::setPolicy(SchedulingPolicy* p) {
     ready_queue = std::priority_queue<Task*, std::vector<Task*>, PolicyComparator>(PolicyComparator{p});
 }
 
-void Scheduler::dispatch(Task* new_running) {   
+void Scheduler::dispatch(Task* new_running) {
     if (current_running != nullptr) {
         stats->recordExecution(current_running->getName(), task_start_time, current_time);
 
         current_running->setState(TaskState::Ready);
         ready_queue.push(current_running);//asta e partea de preemptie
-        
+
         event_queue->push({EventType::Preempt, current_time, current_running->getId(), current_running->getName()});
-    
+        stats->onPreempt(current_running->getId());
     }
     current_running = new_running;
-    current_running->setState(TaskState::Running); // si asta e partea de dispatch      
+    current_running->setState(TaskState::Running); // si asta e partea de dispatch
     ready_queue.pop();
-    stats->onPreempt(current_running->getId());   
     event_queue->push({EventType::Dispatch, current_time, current_running->getId(), current_running->getName()}); //adaug in event_queue evenimentul cand este dat jos din capul pq
     task_start_time = current_time;
     
@@ -153,7 +153,7 @@ void Scheduler::run(int duration) {
         }
             event_queue->push({EventType::Tick, current_time, -1, "idle"});
 
-   //     std::this_thread::sleep_for(std::chrono::milliseconds(750)); 
+         std::this_thread::sleep_for(std::chrono::milliseconds(750)); 
     }
     event_queue->push({EventType::EndOfSimulation, current_time, -1, ""}); // -1 la task id pt ca nu mai ruleaza nimic
               
