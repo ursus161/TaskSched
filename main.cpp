@@ -8,50 +8,75 @@
 #include "scheduler/dashboard/Dashboard.h"
 #include <iostream>
 #include <vector>
-#include <thread>   
+#include <thread>
+#include <stdexcept>
 
 using namespace std;
 
 int main() {
-    EventQueue queue;
-    Stats stats;
-    EDFPolicy policy;
+    vector<Task*> tasks;
+    try {
+        EventQueue queue;
+        Stats stats;
+        EDFPolicy policy;
 
-    vector<Task*> tasks = {
-    new PeriodicTask(1, "T_P10",  20, 2,  10,  10),   // U = 2/10  = 0.20
-    new PeriodicTask(2, "T_P20",  15, 3,  20,  20),   // U = 3/20  = 0.15
-    new PeriodicTask(3, "T_P50",  10, 10, 50,  50),   // U = 10/50 = 0.20
-    new PeriodicTask(4, "T_P100", 5,  15, 100, 100),  // U = 15/100= 0.15
-        //am sum(U) = 0.7, 
-    };
+        tasks = {
+        new PeriodicTask(1, "T_P10",  20, 2,  10,  10),   // U = 2/10  = 0.20
+        new PeriodicTask(2, "T_P20",  15, 3,  20,  20),   // U = 3/20  = 0.15
+        new PeriodicTask(3, "T_P50",  10, 10, 50,  50),   // U = 10/50 = 0.20
+        new PeriodicTask(4, "T_P100", 5,  15, 100, 100),  // U = 15/100= 0.15
+            //am sum(U) = 0.7,
+        };
 
-    for (Task* t : tasks) {
-        stats.registerTask(t->getId(), t->getName(), t->getType());
+        for (Task* t : tasks) {
+            stats.registerTask(t->getId(), t->getName(), t->getType());
+        }
+
+        Scheduler sched(&policy, &stats, &queue);
+        for (Task* t : tasks) sched.addTask(t);
+
+        Dashboard dashboard(&queue);
+        std::thread dashboard_thread(&Dashboard::run, &dashboard);  // porneste dashboard pe alt thread
+
+        sched.run(10000);
+
+        dashboard_thread.join();
+
+        stats.exportToCSV("scheduler/stats/csv/timeline_" + policy.getName() + ".csv");
+
+        // // citim events din queue
+        // cout << "\n=== Events collected ===\n";
+        // while (true) {
+        //     Event e = queue.pop();
+        //     cout << "t=" << e.time << " type=" << (int)e.type << " task_id=" << e.task_id << "\n";
+        //     if (e.type == EventType::EndOfSimulation) break;
+        // }
+
+    } catch (const std::bad_alloc& e) {
+        std::cerr << "[main] Memorie insuficienta: " << e.what() << "\n";
+        for (Task* t : tasks) delete t;
+        return 1;
+    } catch (const std::invalid_argument& e) {
+        std::cerr << "[main] Parametru invalid: " << e.what() << "\n";
+        for (Task* t : tasks) delete t;
+        return 2;
+    } catch (const std::runtime_error& e) {
+        std::cerr << "[main] Eroare runtime: " << e.what() << "\n";
+        for (Task* t : tasks) delete t;
+        return 3;
+    } catch (const std::exception& e) {
+        std::cerr << "[main] Exceptie necunoscuta: " << e.what() << "\n";
+        for (Task* t : tasks) delete t;
+        return 4;
+    } catch (...) {
+        std::cerr << "[main] Exceptie non-standard, oprire fortata\n";
+        for (Task* t : tasks) delete t;
+        return 5;
     }
-
-    Scheduler sched(&policy, &stats, &queue);
-    for (Task* t : tasks) sched.addTask(t);
-
-    Dashboard dashboard(&queue);
-    std::thread dashboard_thread(&Dashboard::run, &dashboard);  // porneste dashboard pe alt thread
-
-    sched.run(100);
-
-    dashboard_thread.join();
-
-    stats.exportToCSV("scheduler/stats/csv/timeline_" + policy.getName() + ".csv");
-
-    // // citim events din queue
-    // cout << "\n=== Events collected ===\n";
-    // while (true) {
-    //     Event e = queue.pop();
-    //     cout << "t=" << e.time << " type=" << (int)e.type << " task_id=" << e.task_id << "\n";
-    //     if (e.type == EventType::EndOfSimulation) break;
-    // }
 
     for (Task* t : tasks) delete t;
     return 0;
-}   
+}
 
 
 
