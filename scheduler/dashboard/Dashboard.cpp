@@ -24,10 +24,10 @@ std::istream& operator>>(std::istream& in, Dashboard& d) {
     return in;  // nimic de citit
 }
 
-int Dashboard::getTerminalWidth() const {
+int Dashboard::getTerminalWidth() {
     //unix system based instructions, va urma si un fix pentru OS Windows
     struct winsize w;
-    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {
+    if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {// syscall ul a reusit 
         return w.ws_col;  // numarul de coloane
     }
     return 80;  // fallback default

@@ -24,10 +24,11 @@ private:
     std::string running_name = "idle"; //ce ruleaza activ acum
     int idle_ticks = 0;
     bool just_completed = false; 
+
     //map de la task_id la taskrow
     std::unordered_map<int, TaskRow> rows;
-    int getTerminalWidth() const;
-    std::string colorForState(const std::string& state);
+
+    static std::string colorForState(const std::string& state);
 public:
 
     Dashboard();
@@ -39,6 +40,8 @@ public:
     friend std::ostream& operator<<(std::ostream& out, const Dashboard& sched);
     friend std::istream& operator>>(std::istream& in, Dashboard& sched);
 
+
+    static int getTerminalWidth();
 
     //actualizeaza starea interna 
     void processEvent(const Event& e);

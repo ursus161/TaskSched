@@ -163,7 +163,7 @@ void Scheduler::run(int duration) {
         }
             event_queue->push({EventType::Tick, current_time, -1, "idle"});
 
-      //  std::this_thread::sleep_for(std::chrono::milliseconds(150)); 
+      std::this_thread::sleep_for(std::chrono::milliseconds(150)); 
     }
     event_queue->push({EventType::EndOfSimulation, current_time, -1, ""}); // -1 la task id pt ca nu mai ruleaza nimic
     } catch (const std::exception& e) {

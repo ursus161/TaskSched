@@ -2,6 +2,8 @@
 #include "tasks/AperiodicTask.h"
 #include "tasks/SporadicTask.h"
 #include "scheduler/Scheduler.h"
+#include "scheduler/policies/PriorityPolicy.h"
+#include "scheduler/policies/RateMonotonicPolicy.h"
 #include "scheduler/policies/EDFPolicy.h"
 #include "scheduler/stats/Stats.h"
 #include "scheduler/stats/EventQueue.h"
@@ -10,39 +12,78 @@
 #include <vector>
 #include <thread>
 #include <stdexcept>
+#include <limits>
 
 using namespace std;
 
 int main() {
     vector<Task*> tasks;
+
+   SchedulingPolicy* policy= nullptr;
+   int exit_code = 0;
+
+    int width = Dashboard::getTerminalWidth();
+    int padding_size = max(0, (width - 40) / 2);
+    string padding(padding_size, ' ');
+
     try {
+
+       int choice;
+        while (policy == nullptr) {
+            
+
+            cout << "\033[H\033[J" << flush; 
+            cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+            
+
+            cout << "\n" << padding << "=== Alege algoritmul de Task Scheduling: ===\n";
+            cout << padding <<"1. Priority\n";
+            cout <<padding << "2. Rate Monotonic\n";
+            cout << padding<< "3. EDF\n";
+            cout << padding << "Optiune: ";
+
+            if (!(cin >> choice)) { //daca returneaza un exit code prost dau clean la buffer si ma reintorc
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');  // curata input-ul invalid
+                cout << padding << "Input invalid, introdu un numar.\n";
+                continue;
+            }
+
+            switch (choice) {
+                case 1: policy = new PriorityPolicy(); break;
+                case 2: policy = new RateMonotonicPolicy(); break;
+                case 3: policy = new EDFPolicy(); break;
+                default: cout << padding << "Optiune invalida, incearca din nou.\n"; 
+                    }
+        }
+                
+
         EventQueue queue;
         Stats stats;
-        EDFPolicy policy;
 
         tasks = {
-        new PeriodicTask(1, "T_P10",  20, 2,  10,  10),   // U = 2/10  = 0.20
-        new PeriodicTask(2, "T_P20",  15, 3,  20,  20),   // U = 3/20  = 0.15
-        new PeriodicTask(3, "T_P50",  10, 10, 50,  50),   // U = 10/50 = 0.20
-        new PeriodicTask(4, "T_P100", 5,  15, 100, 100),  // U = 15/100= 0.15
-            //am sum(U) = 0.7,
+            new PeriodicTask(1, "T_Fast",  20, 5,  10,  10),   // U = 0.50
+            new PeriodicTask(2, "T_Mid",   15, 6,  20,  20),   // U = 0.30
+            new PeriodicTask(3, "T_Slow",  10, 9,  50,  50),   // U = 0.18
+            // sum(U) = 0.98
+            // si pt n=3 avem : 3 * (2^(1/3) - 1) = 0.7797 = 77.97% deci nu putem garanta lipsa de deadline misses
         };
 
         for (Task* t : tasks) {
             stats.registerTask(t->getId(), t->getName(), t->getType());
-        }
+        }   
 
-        Scheduler sched(&policy, &stats, &queue);
+        Scheduler sched(policy, &stats, &queue);
         for (Task* t : tasks) sched.addTask(t);
 
         Dashboard dashboard(&queue);
-        std::thread dashboard_thread(&Dashboard::run, &dashboard);  // porneste dashboard pe alt thread
+        thread dashboard_thread(&Dashboard::run, &dashboard);  // porneste dashboard pe alt thread
 
         sched.run(10000);
 
         dashboard_thread.join();
 
-        stats.exportToCSV("scheduler/stats/csv/timeline_" + policy.getName() + ".csv");
+        stats.exportToCSV("scheduler/stats/csv/timeline_" + policy->getName() + ".csv");
 
         // // citim events din queue
         // cout << "\n=== Events collected ===\n";
@@ -52,30 +93,27 @@ int main() {
         //     if (e.type == EventType::EndOfSimulation) break;
         // }
 
-    } catch (const std::bad_alloc& e) {
-        std::cerr << "[main] Memorie insuficienta: " << e.what() << "\n";
-        for (Task* t : tasks) delete t;
-        return 1;
-    } catch (const std::invalid_argument& e) {
-        std::cerr << "[main] Parametru invalid: " << e.what() << "\n";
-        for (Task* t : tasks) delete t;
-        return 2;
-    } catch (const std::runtime_error& e) {
-        std::cerr << "[main] Eroare runtime: " << e.what() << "\n";
-        for (Task* t : tasks) delete t;
-        return 3;
-    } catch (const std::exception& e) {
-        std::cerr << "[main] Exceptie necunoscuta: " << e.what() << "\n";
-        for (Task* t : tasks) delete t;
-        return 4;
+  } catch (const bad_alloc& e) {
+        cerr << "[main] Memorie insuficienta: " << e.what() << "\n";
+        exit_code = 1;
+    } catch (const invalid_argument& e) {
+        cerr << "[main] Parametru invalid: " << e.what() << "\n";
+        exit_code = 2;
+    } catch (const runtime_error& e) {
+        cerr << "[main] Eroare runtime: " << e.what() << "\n";
+        exit_code = 3;
+    } catch (const exception& e) {
+        cerr << "[main] Exceptie necunoscuta: " << e.what() << "\n";
+        exit_code = 4;
     } catch (...) {
-        std::cerr << "[main] Exceptie non-standard, oprire fortata\n";
-        for (Task* t : tasks) delete t;
-        return 5;
+        cerr << "[main] Exceptie non-standard\n";
+        exit_code = 5;
     }
 
     for (Task* t : tasks) delete t;
-    return 0;
+    delete policy;
+    return exit_code;
+
 }
 
 
