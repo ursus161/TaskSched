@@ -1,16 +1,24 @@
 #include "Task.h"
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
 Task::Task(int id, const string& name, int priority, int worstCaseExecutionTime, int deadline)
     :id(id),
-     name(name), 
+     name(name),
      priority(priority),
      worstCaseExecutionTime(worstCaseExecutionTime),
      deadline(deadline),
      state(TaskState::Inactive),
      remaining_time(0),
-     absolute_deadline(0) {}
+     absolute_deadline(0) {
+    if (name.empty())
+        throw std::invalid_argument("Task id=" + std::to_string(id) + ": numele nu poate fi gol");
+    if (worstCaseExecutionTime <= 0)
+        throw std::invalid_argument("Task '" + name + "': WCET trebuie sa fie > 0");
+    if (deadline <= 0)
+        throw std::invalid_argument("Task '" + name + "': deadline trebuie sa fie > 0");
+}
 
 Task::Task(const Task& other)
     : id(other.id), name(other.name), priority(other.priority),
@@ -77,3 +85,4 @@ void Task::setPriority(int p) { this->priority = p; }
 void Task::setState(TaskState s) { this->state = s; }
 void Task::setRemainingTime(int t) { this->remaining_time = t; }
 void Task::setAbsoluteDeadline(int d) { this->absolute_deadline = d; }
+

@@ -1,6 +1,5 @@
 #pragma once
 #include "../tasks/Task.h"
-using namespace std;
 class AperiodicTask : virtual public Task {
 protected:
 
@@ -9,7 +8,7 @@ protected:
 
 public:
     
-    AperiodicTask(int id, const string& name, int priority,
+    AperiodicTask(int id, const std::string& name, int priority,
                   int worstCaseExecutionTime, int deadline, int arrival_time);
     
     AperiodicTask();
@@ -24,5 +23,5 @@ public:
 
     bool isReadyAt(int current_time) const override;
     void release(int current_time) override;
-    string getType() const override;
+    std::string getType() const override;
 };

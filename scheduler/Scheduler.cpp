@@ -3,6 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
 Scheduler::Scheduler()
@@ -61,6 +62,8 @@ std::istream& operator>>(std::istream& in, Scheduler& sched) {
 
 
 void Scheduler::addTask(Task* task) {
+    if (!task)
+        throw std::invalid_argument("Scheduler::addTask: pointer null, taskul nu a fost creat");
     tasks.push_back(task); //adaug in pq
 }
 
@@ -74,6 +77,8 @@ void Scheduler::setPolicy(SchedulingPolicy* p) {
 }
 
 void Scheduler::dispatch(Task* new_running) {
+    if (!new_running)
+        throw std::logic_error("Scheduler::dispatch: incercare de dispatch cu task null");
     if (current_running != nullptr) {
         stats->recordExecution(current_running->getName(), task_start_time, current_time);
 
@@ -94,7 +99,12 @@ void Scheduler::dispatch(Task* new_running) {
 
 
 void Scheduler::run(int duration) {
-    if (!policy) return;
+    if (!policy)      throw std::runtime_error("Scheduler: nicio politica setata");
+    if (!stats)       throw std::runtime_error("Scheduler: stats neinitializat");
+    if (!event_queue) throw std::runtime_error("Scheduler: event_queue neinitializata");
+    if (duration <= 0)
+        throw std::invalid_argument("Scheduler::run: durata trebuie sa fie > 0 (primit: " + std::to_string(duration) + ")");
+    try {
     for (current_time = 0; current_time < duration; current_time++) {
 
 
@@ -153,8 +163,12 @@ void Scheduler::run(int duration) {
         }
             event_queue->push({EventType::Tick, current_time, -1, "idle"});
 
-         std::this_thread::sleep_for(std::chrono::milliseconds(750)); 
+      //  std::this_thread::sleep_for(std::chrono::milliseconds(150)); 
     }
     event_queue->push({EventType::EndOfSimulation, current_time, -1, ""}); // -1 la task id pt ca nu mai ruleaza nimic
-              
+    } catch (const std::exception& e) {
+        std::cerr << "[Scheduler] Eroare in simulare la t=" << current_time << ": " << e.what() << "\n";
+        event_queue->push({EventType::EndOfSimulation, current_time, -1, ""}); // oprire curata si in caz de exceptie
+        throw;
+    }
 }

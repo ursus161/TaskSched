@@ -1,5 +1,6 @@
 #include <string>
 #include <iostream>
+#include <stdexcept>
 #include "PeriodicTask.h"
 using namespace std;
 
@@ -8,9 +9,15 @@ PeriodicTask::PeriodicTask(int id, const string& name, int priority,
 
                  Task(id,name,priority,worstCaseExecutionTime,deadline),
 
-                period(period), 
+                period(period),
                 first_release(first_release),
-                jobs_released(0) {};
+                jobs_released(0) {
+    if (period <= 0)
+        throw std::invalid_argument("PeriodicTask '" + name + "': perioada trebuie sa fie > 0");
+    if (worstCaseExecutionTime > period)
+        throw std::invalid_argument("PeriodicTask '" + name + "': WCET (" + std::to_string(worstCaseExecutionTime) +
+                                    ") depaseste perioada (" + std::to_string(period) + ")");
+};
 
 PeriodicTask::PeriodicTask()
 :Task(),

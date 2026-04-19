@@ -1,5 +1,6 @@
 #include "Dashboard.h"
 #include <iostream>
+#include <stdexcept>
 #include <sys/ioctl.h>
 #include <unistd.h>
 #include <iomanip>
@@ -40,23 +41,29 @@ std::string Dashboard::colorForState(const std::string& state) {
 }
 
 void Dashboard::run() {
-    int last_time = -999;
-    while (true) {  
-        Event e = queue->pop();
-        
-        // daca time s-a schimbat, desenez STAREA VECHEA (pentru last_time)
-        if (e.time != last_time && last_time >= 0) {
-            render();
-           // std::this_thread::sleep_for(std::chrono::milliseconds(700));  // pauza doar cand desenez
+    if (!queue) throw std::runtime_error("Dashboard: queue neinitializata");
+    try {
+        int last_time = -999;
+        while (true) {
+            Event e = queue->pop();
+
+            // daca time s-a schimbat, desenez STAREA VECHEA (pentru last_time)
+            if (e.time != last_time && last_time >= 0) {
+                render();
+               // std::this_thread::sleep_for(std::chrono::milliseconds(700));  // pauza doar cand desenez
+            }
+
+            processEvent(e);       // dupa render, updatez starea pentru noul time
+            last_time = e.time;
+
+            if (e.type == EventType::EndOfSimulation) {
+                render();          // ultimul desen
+                break;
+            }
         }
-        
-        processEvent(e);       // dupa render, updatez starea pentru noul time
-        last_time = e.time;
-        
-        if (e.type == EventType::EndOfSimulation) {
-            render();          // ultimul desen
-            break;
-        }
+    } catch (const std::exception& e) {
+        std::cerr << "[Dashboard] Eroare in loop: " << e.what() << "\n";
+        throw;
     }
 }
 

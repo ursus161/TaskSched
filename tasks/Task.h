@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-using namespace std;
 
 
 
@@ -20,7 +19,7 @@ class Task {
 protected:
 
     int id;
-    string name; //ptr logging si debug
+    std::string name; //ptr logging si debug
     int priority; // voi folosi un max-heap unde voi avea nevoie de campul acesta ptr coada de prioritati
     int worstCaseExecutionTime; // worst case exec time
 
@@ -39,7 +38,7 @@ protected:
     void setAbsoluteDeadline(int d);
 
 public: 
-    Task(int id, const string& name, int priority, int worstCaseExecutionTime, int deadline);
+    Task(int id, const std::string& name, int priority, int worstCaseExecutionTime, int deadline);
     Task(const Task& other);
 
     Task();
@@ -52,7 +51,7 @@ public:
     friend std::istream& operator>>(std::istream& in, Task& t);
     
     int getId() const;
-    const string& getName() const;
+    const std::string& getName() const;
     int getPriority() const;
     int getDeadline() const;
     TaskState getState() const;
@@ -68,6 +67,6 @@ public:
     //iar la ceva sporadic trebuie sa fi apasat pe trigger, dar sa fi si trecut perioada de debounce, hence the mm
 
     virtual void release(int current_time) = 0; //difera per tip de task, spre ex dau handle la debounce diferit ptr fiecare clasa
-    virtual string getType() const = 0; 
+    virtual std::string getType() const = 0;
 
 };

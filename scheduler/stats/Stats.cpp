@@ -1,5 +1,6 @@
 #include "Stats.h"
 #include <fstream>
+#include <stdexcept>
 #include "../tasks/PeriodicTask.h"
 Stats::Stats()
     : active_ticks(0), idle_ticks(0),
@@ -63,21 +64,37 @@ void Stats::registerTask(int task_id, const std::string& name, const std::string
 }
 
 void Stats::onRelease(int task_id) {
-    per_task[task_id].onRelease();
+    try {
+        per_task.at(task_id).onRelease();
+    } catch (const std::out_of_range&) {
+        std::cerr << "[Stats] Warning: onRelease - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
+    }
 }
 
 void Stats::onPreempt(int task_id) {
-    per_task[task_id].onPreempt();
-    total_preemptions++;
+    try {
+        per_task.at(task_id).onPreempt();
+        total_preemptions++;
+    } catch (const std::out_of_range&) {
+        std::cerr << "[Stats] Warning: onPreempt - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
+    }
 }
 
 void Stats::onComplete(int task_id, int response_time) {
-    per_task[task_id].onComplete(response_time);
+    try {
+        per_task.at(task_id).onComplete(response_time);
+    } catch (const std::out_of_range&) {
+        std::cerr << "[Stats] Warning: onComplete - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
+    }
 }
 
 void Stats::onDeadlineMiss(int task_id) {
-    per_task[task_id].onDeadlineMiss();
-    total_deadline_misses++;
+    try {
+        per_task.at(task_id).onDeadlineMiss();
+        total_deadline_misses++;
+    } catch (const std::out_of_range&) {
+        std::cerr << "[Stats] Warning: onDeadlineMiss - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
+    }
 }
 
 void Stats::onTick(bool cpu_active) {
@@ -93,11 +110,22 @@ void Stats::recordExecution(const std::string& task_name, int start, int end) {
 
 void Stats::exportToCSV(const std::string& filename) const {
     std::ofstream fout(filename);
-    fout << "Task,Start,End\n"; // orice csv are un header
-    for (const auto& rec : timeline) {
-        fout << rec.task_name << "," << rec.start_time << "," << rec.end_time << "\n";
+    if (!fout.is_open()) {
+        throw std::runtime_error("Nu pot deschide fisierul pentru export: " + filename);
     }
-    fout.close();
+    try {
+        fout << "Task,Start,End\n"; // orice csv are un header
+        for (const auto& rec : timeline) {
+            fout << rec.task_name << "," << rec.start_time << "," << rec.end_time << "\n";
+        }
+        fout.close();
+        if (fout.fail()) {
+            throw std::runtime_error("Eroare la scriere in fisier: " + filename);
+        }
+    } catch (...) {
+        fout.close();
+        throw;
+    }
 }
 
 

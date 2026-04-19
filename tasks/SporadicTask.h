@@ -3,7 +3,6 @@
 #include "PeriodicTask.h"
 #include "AperiodicTask.h"
 #include <vector>
-using namespace std;
 
 class SporadicTask : public PeriodicTask, public AperiodicTask {
 protected:
@@ -11,13 +10,13 @@ protected:
     //nu pot sa apas un buton de doua ori intr un interval de N unitati de timp spre ex
     int last_activation;
 
-    vector<int> triggers; //realmente chestiile astea vor veni de la hardware/user, insa pentru o simulare determinista voi defini eu un vector
+    std::vector<int> triggers; //realmente chestiile astea vor veni de la hardware/user, insa pentru o simulare determinista voi defini eu un vector
     int next_trigger_index;
 
 public:
-    SporadicTask(int id, const string& name, int priority,
+    SporadicTask(int id, const std::string& name, int priority,
                  int worstCaseExecutionTime, int deadline, int minimumInterArrivalTime,
-                 const vector<int>& triggers);
+                 const std::vector<int>& triggers);
     SporadicTask(const SporadicTask& other);
 
     SporadicTask();
@@ -30,5 +29,5 @@ public:
 
     bool isReadyAt(int current_time) const override;
     void release(int current_time) override;
-    string getType() const override;
+    std::string getType() const override;
 };
