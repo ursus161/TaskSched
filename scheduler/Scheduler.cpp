@@ -144,27 +144,26 @@ void Scheduler::run(int duration) {
 
         //executa 1 tick din taskul curent
         if (current_running != nullptr) {
-            event_queue->push({EventType::Tick, current_time, -1, "idle"});
-
             current_running->setRemainingTime(current_running->getRemainingTime() - 1);
             stats->onTick(true); //adica acest task a fost activ in acest tick, util ptr cpu% and stuff like that
- 
-            
+
+
             if (current_running->getRemainingTime() == 0) { //e gata jobul taskului
                 event_queue->push({EventType::Complete, current_time, current_running->getId(), current_running->getName()});
-              
-              
+
+
                 int response_time = (current_time + 1) - (current_running->getAbsoluteDeadline() - current_running->getDeadline());
                 stats->onComplete(current_running->getId(), response_time);
                 stats->recordExecution(current_running->getName(), task_start_time, current_time + 1);
                 current_running->setState(TaskState::Finished);
                 current_running = nullptr;
-            }   
+            }
         } else { //asta e cpu-idle path
             stats->onTick(false);
         }
+        event_queue->push({EventType::Tick, current_time, -1, "idle"});
 
-      std::this_thread::sleep_for(std::chrono::milliseconds(150)); 
+      std::this_thread::sleep_for(std::chrono::milliseconds(50)); 
     }
     event_queue->push({EventType::EndOfSimulation, current_time, -1, ""}); // -1 la task id pt ca nu mai ruleaza nimic
     } catch (const std::exception& e) {

@@ -5,13 +5,14 @@
 #include <unistd.h>
 #include <iomanip>
 
-Dashboard::Dashboard() : queue(nullptr) {}
-Dashboard::Dashboard(EventQueue* q) : queue(q) {}
-Dashboard::Dashboard(const Dashboard& other) : queue(other.queue) {}
+Dashboard::Dashboard() : queue(nullptr), stats(nullptr) {}
+Dashboard::Dashboard(EventQueue* q, Stats* s) : queue(q), stats(s) {}
+Dashboard::Dashboard(const Dashboard& other) : queue(other.queue), stats(other.stats) {}
 
 Dashboard& Dashboard::operator=(const Dashboard& other) {
     if (this == &other) return *this;
     queue = other.queue;
+    stats = other.stats;
     return *this;
 }
 
@@ -41,7 +42,8 @@ std::string Dashboard::colorForState(const std::string& state) {
 }
 
 void Dashboard::run() {
-    if (!queue) throw std::runtime_error("Dashboard: queue neinitializata");
+    if (!queue)  throw std::runtime_error("Dashboard: queue neinitializata");
+    if (!stats)  throw std::runtime_error("Dashboard: stats neinitializat");
     try {
         int last_time = -999;
         while (true) {
@@ -107,13 +109,11 @@ void Dashboard::processEvent(const Event& e) {
 
         case EventType::Tick:
             if (just_completed) {
-                
                 running_id = -1;
                 running_name = "idle";
                 just_completed = false;
-            } else if (e.time > 0 && running_id == -1) {
-                idle_ticks++;
             }
+            // idle_ticks nu mai e tinut local — il citim din Stats in render()
             break;
 
         case EventType::DeadlineMiss:
@@ -138,12 +138,13 @@ void Dashboard::render() {
 
     std::cout << padding << "\033[1;36m=== Task Scheduler Dashboard ===\033[0m\n";
 
-    int total = std::max(1, current_time + 1);
-    int active = std::max(0, total - idle_ticks);
-    double cpu_pct = 100.0 * active / total;
+    // citim direct din Stats — sursa autoritara, fara intarziere de un tick
+    double cpu_pct = stats->getCpuUtilization();
+    int idle = stats->getIdleTicks();
 
-    std::cout << padding << "Time: " << current_time + 1 << " tick  |  CPU: " 
-            << std::fixed << std::setprecision(1) << cpu_pct << "%\n";
+    std::cout << padding << "Time: " << current_time + 1 << " tick  |  CPU: "
+            << std::fixed << std::setprecision(1) << cpu_pct << "%"
+            << "  |  Idle ticks: " << idle << "\n";
     std::cout << padding ;std::cout << "Running: " << running_name << "\n";
     std::cout << padding ;   std::cout << "----------------------------------------\n";
     std::cout << padding << std::left
@@ -153,6 +154,7 @@ void Dashboard::render() {
               << std::setw(6) << "Rel"
               << std::setw(6) << "Comp"
               << std::setw(6) << "Miss" << "\n";
+            
     std::cout << padding ;   std::cout << "----------------------------------------\n";
     
     for (const auto& [id, row] : rows) {
