@@ -144,6 +144,8 @@ void Scheduler::run(int duration) {
 
         //executa 1 tick din taskul curent
         if (current_running != nullptr) {
+            event_queue->push({EventType::Tick, current_time, -1, "idle"});
+
             current_running->setRemainingTime(current_running->getRemainingTime() - 1);
             stats->onTick(true); //adica acest task a fost activ in acest tick, util ptr cpu% and stuff like that
  
@@ -161,7 +163,6 @@ void Scheduler::run(int duration) {
         } else { //asta e cpu-idle path
             stats->onTick(false);
         }
-            event_queue->push({EventType::Tick, current_time, -1, "idle"});
 
       std::this_thread::sleep_for(std::chrono::milliseconds(150)); 
     }
