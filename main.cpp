@@ -87,8 +87,9 @@ int main() {
             // meniu post-simulare
             bool in_menu = true;
             while (in_menu) {
-               // cout << "\033[H\033[J" << flush;
-
+                cout << "\033[H\033[J" << flush;
+                
+                cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
                 cout << "\n" << padding << "=== Simulare terminata (" << policy->getName() << ") ===\n";
                 cout << padding << "1. Vezi snapshot-ul sistemului la un tick\n";
                 cout << padding << "2. Ruleaza din nou\n";
@@ -121,6 +122,9 @@ int main() {
                              << " | Utilizare: " << rows[0].cpu_util << "%\n";
                         for (const auto& r : rows)
                             cout << padding << "  [" << r.task_id << "] " << r.task_name << " -> " << r.state << "\n";
+                        cout << "\n" << padding << "Apasa Enter pentru a continua...";
+                        cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                        cin.get();
                         break;
                     }
                     case 2:
