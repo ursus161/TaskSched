@@ -91,6 +91,7 @@ int main() {
                 
                 cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
                 cout << "\n" << padding << "=== Simulare terminata (" << policy->getName() << ") ===\n";
+                cout<< "\n" << padding << "CPU% final: " << stats.getCpuUtilization() << " \n";
                 cout << padding << "1. Vezi snapshot-ul sistemului la un tick\n";
                 cout << padding << "2. Ruleaza din nou\n";
                 cout << padding << "3. Iesire\n";
