@@ -80,8 +80,6 @@ void Scheduler::dispatch(Task* new_running) {
     if (!new_running)
         throw std::logic_error("Scheduler::dispatch: incercare de dispatch cu task null");
     if (current_running != nullptr) {
-        stats->recordExecution(current_running->getName(), task_start_time, current_time);
-
         current_running->setState(TaskState::Ready);
         ready_queue.push(current_running);//asta e partea de preemptie
 
@@ -106,31 +104,33 @@ void Scheduler::run(int duration) {
         throw std::invalid_argument("Scheduler::run: durata trebuie sa fie > 0 (primit: " + std::to_string(duration) + ")");
     try {
     for (current_time = 0; current_time < duration; current_time++) {
-
+        bool state_changed = false;
 
         // verifica ce taskuri devin ready acum + deadline miss check
         for (Task* t : tasks) {
 
             // release pentru taskuri care devin ready
             if (t->isReadyAt(current_time) && t->getState() != TaskState::Ready && t->getState() != TaskState::Running) {
-             
+
                 t->release(current_time); //devine disponibil ptr pq, imi reseteaza si toate datele taskului
-              
+
                 event_queue->push({EventType::Release, current_time, t->getId(), t->getName()});
                 ready_queue.push(t);
-             
-             
+
+
                 stats->onRelease(t->getId()); //increment la contorul intern
+                state_changed = true;
             }
 
             // deadline miss check pentru taskuri active
             // soft real-time: taskul continua sa ruleze dupa miss, doar inregistram in statistici o singura data
-            if (t->getState() != TaskState::Finished && t->getState() != TaskState::Inactive 
+            if (t->getState() != TaskState::Finished && t->getState() != TaskState::Inactive
                 && t->getState() != TaskState::Missed && current_time > t->getAbsoluteDeadline()) {
                 event_queue->push({EventType::DeadlineMiss, current_time, t->getId(), t->getName()});
-                
+
                 stats->onDeadlineMiss(t->getId()); //la fel, prelucrez statisticile in acest caz
                 t->setState(TaskState::Missed); //marchez starea ca sa nu mai raportez acelasi miss la tick-urile urmatoare
+                state_changed = true;
             }
         }
         //decizia de scheduling
@@ -138,6 +138,7 @@ void Scheduler::run(int duration) {
             Task* top = ready_queue.top();
             if (current_running == nullptr || policy->isHigherPriority(top, current_running)) {
                 dispatch(top);
+                state_changed = true;
             } //context switch
         }
 
@@ -154,13 +155,19 @@ void Scheduler::run(int duration) {
 
                 int response_time = (current_time + 1) - (current_running->getAbsoluteDeadline() - current_running->getDeadline());
                 stats->onComplete(current_running->getId(), response_time);
-                stats->recordExecution(current_running->getName(), task_start_time, current_time + 1);
                 current_running->setState(TaskState::Finished);
                 current_running = nullptr;
+                state_changed = true;
             }
         } else { //asta e cpu-idle path
             stats->onTick(false);
         }
+
+        if (state_changed)
+            stats->recordSnapshot(current_time,
+                                  current_running ? current_running->getName() : "IDLE",
+                                  stats->getCpuUtilization(), tasks);
+
         event_queue->push({EventType::Tick, current_time, -1, "idle"});
 
       std::this_thread::sleep_for(std::chrono::milliseconds(50)); 

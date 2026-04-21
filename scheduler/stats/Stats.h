@@ -7,11 +7,13 @@
 #include "../tasks/Task.h"
 
 
-struct GanttRecord{
+struct SnapshotRow {
+    int tick;
+    std::string cpu_task;
+    double cpu_util;
+    int task_id;
     std::string task_name;
-    int start_time;
-    int end_time;
-
+    std::string state;
 };
 
 class Stats {
@@ -21,7 +23,7 @@ private:
     int total_preemptions;
     int total_deadline_misses;
     std::unordered_map<int, TaskStats> per_task; //dictionar task id si statisticile taskului
-    std::vector<GanttRecord> timeline;
+    std::vector<SnapshotRow> snapshot_log;
 
 public:
     Stats();
@@ -52,10 +54,9 @@ public:
     void onTick(bool cpu_active);
 
 
-    //export datele din recordExecution
-    void exportToCSV(const std::string& filename) const;
-    //fiecare pushback de aici o sa fie cate un rand in CSV
-    void recordExecution(const std::string& task_name, int start, int end);
+    void recordSnapshot(int tick, const std::string& cpu_task, double cpu_util, const std::vector<Task*>& tasks);
+    void exportSnapshotCSV(const std::string& filename) const;
+    static std::vector<SnapshotRow> getSnapshotAt(const std::string& filename, int tick);
 
 
 
