@@ -25,6 +25,7 @@ private:
     std::string running_name = "idle"; //ce ruleaza activ acum
     // idle_ticks eliminat — il citim direct din Stats, fara intarziere de un tick
     bool just_completed = false;
+    int last_completed_id = -1; // retine id-ul taskului care tocmai a terminat, pentru a nu reseta running_id daca un dispatch nou a venit in acelasi tick
 
     //map de la task_id la taskrow
     std::unordered_map<int, TaskRow> rows;

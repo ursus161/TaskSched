@@ -57,9 +57,10 @@ void Dashboard::run() {
 
             processEvent(e);       // dupa render, updatez starea pentru noul time
             last_time = e.time;
+            
+            if (e.type == EventType::EndOfSimulation || e.type == EventType::Tick) {render();}
 
             if (e.type == EventType::EndOfSimulation) {
-                render();          // ultimul desen
                 break;
             }
         }
@@ -104,13 +105,18 @@ void Dashboard::processEvent(const Event& e) {
             rows[e.task_id].state = "Finished";
             if (running_id == e.task_id) {
                 just_completed = true; //  clearing running_id pana dupa Tick
+                last_completed_id = e.task_id;
             }
             break;
 
         case EventType::Tick:
             if (just_completed) {
-                running_id = -1;
-                running_name = "idle";
+                // resetam running doar daca nu a venit un Dispatch nou in acelasi tick
+                // daca a venit Dispatch, running_id e deja alt task, nu last_completed_id
+                if (running_id == last_completed_id) {
+                    running_id = -1;
+                    running_name = "idle";
+                }
                 just_completed = false;
             }
             // idle_ticks nu mai e tinut local — il citim din Stats in render()
@@ -145,7 +151,7 @@ void Dashboard::render() {
     std::cout << padding << "Time: " << current_time + 1 << " tick  |  CPU: "
             << std::fixed << std::setprecision(1) << cpu_pct << "%"
             << "  |  Idle ticks: " << idle << "\n";
-    std::cout << padding ;std::cout << "Running: " << running_name << "\n";
+    std::cout << padding << "Running: " << (running_id == -1 ? "idle" : running_name) << "\n";
     std::cout << padding ;   std::cout << "----------------------------------------\n";
     std::cout << padding << std::left
               << std::setw(4) << "ID"

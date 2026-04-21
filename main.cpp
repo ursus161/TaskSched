@@ -60,15 +60,15 @@ int main() {
 
         EventQueue queue;
         Stats stats;
-
-        tasks = {
-            new PeriodicTask(1, "T_Fast",  20, 5,  10,  10),   // U = 0.50
-            new PeriodicTask(2, "T_Mid",   15, 6,  20,  20),   // U = 0.30
-            new PeriodicTask(3, "T_Slow",  10, 9,  50,  50),   // U = 0.18
-            // sum(U) = 0.98
-            // si pt n=3 avem : 3 * (2^(1/3) - 1) = 0.7797 = 77.97% deci nu putem garanta lipsa de deadline misses
-        };
-
+                                                                                                    
+            tasks = {                                                                                                                                                          
+                new PeriodicTask(1, "T_A", 20, 2, 10,  10),  // U=0.20
+                new PeriodicTask(2, "T_B", 15, 4, 20,  20),  // U=0.20                                                                                                         
+                new PeriodicTask(3, "T_C", 10, 9, 50,  50),  // U=0.18                                                                                                         
+                // sum(U)=0.58 < RM bound (75.68%) toate 3 policy-uri: 0 misses, CPU%=58                                                                                     
+            };       
+                                                                                                                                                                                                                                       
+                                    
         for (Task* t : tasks) {
             stats.registerTask(t->getId(), t->getName(), t->getType());
         }   
@@ -76,10 +76,10 @@ int main() {
         Scheduler sched(policy, &stats, &queue);
         for (Task* t : tasks) sched.addTask(t);
 
-        Dashboard dashboard(&queue);
+        Dashboard dashboard(&queue, &stats);
         thread dashboard_thread(&Dashboard::run, &dashboard);  // porneste dashboard pe alt thread
 
-        sched.run(10000);
+        sched.run(200);
 
         dashboard_thread.join();
 

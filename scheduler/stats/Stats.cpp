@@ -64,37 +64,29 @@ void Stats::registerTask(int task_id, const std::string& name, const std::string
 }
 
 void Stats::onRelease(int task_id) {
-    try {
-        per_task.at(task_id).onRelease();
-    } catch (const std::out_of_range&) {
-        std::cerr << "[Stats] Warning: onRelease - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
-    }
+    if (!per_task.count(task_id))
+        throw std::invalid_argument("[Stats] onRelease: task_id " + std::to_string(task_id) + " neinregistrat");
+    per_task[task_id].onRelease();
 }
 
 void Stats::onPreempt(int task_id) {
-    try {
-        per_task.at(task_id).onPreempt();
-        total_preemptions++;
-    } catch (const std::out_of_range&) {
-        std::cerr << "[Stats] Warning: onPreempt - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
-    }
+    if (!per_task.count(task_id))
+        throw std::invalid_argument("[Stats] onPreempt: task_id " + std::to_string(task_id) + " neinregistrat");
+    per_task[task_id].onPreempt();
+    total_preemptions++;
 }
 
 void Stats::onComplete(int task_id, int response_time) {
-    try {
-        per_task.at(task_id).onComplete(response_time);
-    } catch (const std::out_of_range&) {
-        std::cerr << "[Stats] Warning: onComplete - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
-    }
+    if (!per_task.count(task_id))
+        throw std::invalid_argument("[Stats] onComplete: task_id " + std::to_string(task_id) + " neinregistrat");
+    per_task[task_id].onComplete(response_time);
 }
 
 void Stats::onDeadlineMiss(int task_id) {
-    try {
-        per_task.at(task_id).onDeadlineMiss();
-        total_deadline_misses++;
-    } catch (const std::out_of_range&) {
-        std::cerr << "[Stats] Warning: onDeadlineMiss - task_id " << task_id << " neinregistrat, eveniment ignorat\n";
-    }
+    if (!per_task.count(task_id))
+        throw std::invalid_argument("[Stats] onDeadlineMiss: task_id " + std::to_string(task_id) + " neinregistrat");
+    per_task[task_id].onDeadlineMiss();
+    total_deadline_misses++;
 }
 
 void Stats::onTick(bool cpu_active) {
