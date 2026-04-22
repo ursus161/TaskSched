@@ -1,5 +1,5 @@
-#include "SchedulingPolicy.h"
 #pragma once
+#include "StaticPriorityPolicy.h"
 // rate monotonic --> perioada mai mica = prioritate mai mare, practic prioritizez cel care dureaza cel mai putin
 // merge doar pe taskuri periodice, pt ca practic am prioritatea invers proportionala cu perioada
 // daca n am perioada nu am prioritate, ceea ce e imposibil
@@ -7,7 +7,7 @@
 
 
 
-class RateMonotonicPolicy : public SchedulingPolicy {
+class RateMonotonicPolicy : public StaticPriorityPolicy {
 public:
     bool isHigherPriority(Task* a, Task* b) const override {
         auto priorityA = dynamic_cast<PeriodicTask*>(a);

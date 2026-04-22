@@ -16,7 +16,9 @@ struct PolicyComparator {
     SchedulingPolicy* policy;
 
     bool operator()(Task* a, Task* b) const {
-        return !policy->isHigherPriority(a,b);
+        if (policy->isHigherPriority(a, b)) return false;
+        if (policy->isHigherPriority(b, a)) return true;
+        return a->getId() > b->getId(); // tie-break determinist: ID mai mic = prioritate mai mare
     }
 };
 

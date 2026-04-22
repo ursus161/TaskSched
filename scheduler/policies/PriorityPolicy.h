@@ -1,8 +1,8 @@
 #pragma once
-#include "SchedulingPolicy.h"
+#include "StaticPriorityPolicy.h"
 
 // Priority Scheduling clasic - prioritate statica (exact ceea ce implementasem in commit ul anterior)
-class PriorityPolicy : public SchedulingPolicy {
+class PriorityPolicy : public StaticPriorityPolicy {
 public:
     bool isHigherPriority(Task* a, Task* b) const override {
         return a->getPriority() > b->getPriority();

@@ -1,8 +1,8 @@
 #pragma once
-#include "SchedulingPolicy.h"
+#include "StaticPriorityPolicy.h"
 
 
-class DeadlineMonotonicPolicy : public SchedulingPolicy {
+class DeadlineMonotonicPolicy : public StaticPriorityPolicy {
 public:
     bool isHigherPriority(Task* a, Task* b) const override {
         return a->getDeadline() < b->getDeadline(); 

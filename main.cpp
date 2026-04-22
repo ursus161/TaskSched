@@ -6,6 +6,7 @@
 #include "scheduler/policies/RateMonotonicPolicy.h"
 #include "scheduler/policies/DeadlineMonotonicPolicy.h"
 #include "scheduler/policies/EDFPolicy.h"
+#include "scheduler/policies/StaticPriorityPolicy.h"
 #include "scheduler/stats/Stats.h"
 #include "scheduler/stats/EventQueue.h"
 #include "scheduler/dashboard/Dashboard.h"

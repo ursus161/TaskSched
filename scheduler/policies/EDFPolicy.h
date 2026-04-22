@@ -11,6 +11,9 @@ public:
 
     std::string getName() const override { return "EDF"; }
 
+
+    PolicyType getPolicyType() const override {return PolicyType::Dynamic;}
+
     EDFPolicy() = default;
     EDFPolicy(const EDFPolicy& other) = default;
     EDFPolicy& operator=(const EDFPolicy& other) = default;

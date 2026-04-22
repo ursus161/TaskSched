@@ -72,7 +72,6 @@ std::istream& operator>>(std::istream& in, Task& t) {
 int Task::getId() const { return id; }
 
 const string& Task::getName() const { return name; }
-
 int Task::getPriority() const { return priority; }
 int Task::getDeadline() const { return deadline; }
 int Task::getWCET() const { return worstCaseExecutionTime;}
