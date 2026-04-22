@@ -82,15 +82,25 @@ int main() {
                 // U = 0.25 + 0.167 + 0.15 = 0.567 < ln(2)
 
                                                                                                                                                     
+            // Deadlines constranste (D < T): DM le da prioritate mare, RM le ignora
+            // Deadlines implicite (D = T): DM si RM sunt echivalente pe aceste taskuri
             tasks = {
-                new PeriodicTask(1, "T1", 30, 1,  6,  6),  // prio=30, wcet=1, D=6,  T=6                                                                                             
-                new PeriodicTask(2, "T2", 10, 1,  5,  8),  // prio=10, wcet=1, D=5,  T=8                                                                                             
-                new PeriodicTask(3, "T3", 50, 2,  8, 10),  // prio=50, wcet=2, D=8,  T=10                                                                                            
-                new PeriodicTask(4, "T4", 40, 2,  7, 15),  // prio=40, wcet=2, D=7,  T=15                                                                                            
-                new PeriodicTask(5, "T5", 20, 3, 12, 20),  // prio=20, wcet=3, D=12, T=20                                                                                            
-                new PeriodicTask(6, "T6", 60, 3, 10, 30),  // prio=60, wcet=3, D=10, T=30                                                                                            
-            };                                                                                                                                                                       
-            // U = 1/6 + 1/8 + 2/10 + 2/15 + 3/20 + 3/30 = 0.875 < 1 
+                new PeriodicTask(1,  "T1",  20, 1,  4, 40),  // prio=20,  wcet=1, D=4,  T=40 | D<T: DM rank 2,  RM rank 10
+                new PeriodicTask(2,  "T2",  30, 1,  6, 30),  // prio=30,  wcet=1, D=6,  T=30 | D<T: DM rank 4,  RM rank  9
+                new PeriodicTask(3,  "T3",  10, 1,  3, 24),  // prio=10,  wcet=1, D=3,  T=24 | D<T: DM rank 1,  RM rank  7
+                new PeriodicTask(4,  "T4",  35, 1,  5,  5),  // prio=35,  wcet=1, D=5,  T=5  | D=T: DM rank 3,  RM rank  1
+                new PeriodicTask(5,  "T5",  40, 1,  8,  8),  // prio=40,  wcet=1, D=8,  T=8  | D=T: DM rank 5,  RM rank  2
+                new PeriodicTask(6,  "T6",  60, 2, 10, 10),  // prio=60,  wcet=2, D=10, T=10 | D=T: DM rank 6,  RM rank  3
+                new PeriodicTask(7,  "T7",  70, 1, 12, 12),  // prio=70,  wcet=1, D=12, T=12 | D=T: DM rank 7,  RM rank  4
+                new PeriodicTask(8,  "T8",  80, 1, 15, 15),  // prio=80,  wcet=1, D=15, T=15 | D=T: DM rank 8,  RM rank  5
+                new PeriodicTask(9,  "T9",  90, 1, 20, 20),  // prio=90,  wcet=1, D=20, T=20 | D=T: DM rank 9,  RM rank  6
+                new PeriodicTask(10, "T10",100, 1, 25, 25),  // prio=100, wcet=1, D=25, T=25 | D=T: DM rank 10, RM rank  8
+            };
+            // U = 1/40+1/30+1/24+1/5+1/8+2/10+1/12+1/15+1/20+1/25 = 0.865 < 1
+            // EDF:      0 misses  (U < 1, optim dinamic)
+            // DM:       0 misses  (optim fixed-priority pentru D<=T, verificat prin RTA)
+            // RM:       misses pe T1,T2,T3 (RM ignora deadlineurile stramte, le da prioritate mica)
+            // Priority: misses pe T3,T1,T2,T4 (prioritatile manuale sunt in ordine inversa DM)
 
 
             for (Task* t : tasks)
@@ -102,7 +112,7 @@ int main() {
             Dashboard dashboard(&queue, &stats);
             thread dashboard_thread(&Dashboard::run, &dashboard);
 
-            sched.run(360);
+            sched.run(600); //hyperperioada este lcm din perioade, un nr de tickuri astfel incat totul sa fie rulat
             dashboard_thread.join();
 
             string snapshot_file = "scheduler/stats/csv/snapshot_" + policy->getName() + ".csv";
