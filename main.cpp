@@ -66,12 +66,32 @@ int main() {
             EventQueue queue;
             Stats stats;
 
+            // tasks = {
+            //     new PeriodicTask(1, "T_A", 20, 2, 10, 10),  // U=0.20
+            //     new PeriodicTask(2, "T_B", 15, 4, 20, 20),  // U=0.20
+            //     new PeriodicTask(3, "T_C", 10, 9, 50, 50),  // U=0.18
+            //     // sum(U)=0.58 < RM bound (75.68%) toate 3 policy-uri: 0 misses, CPU%=58
+            // }; 
+
+                            
+                // tasks = {                                                                                                                                                                
+                //     new PeriodicTask(1, "T_A", 20, 2,  8,  8),  // deadline=8,  period=8
+                //     new PeriodicTask(2, "T_B", 10, 2,  4, 12),  // deadline=4,  period=12                                                                                                
+                //     new PeriodicTask(3, "T_C", 30, 3, 10, 20),  // deadline=10, period=20
+                // };                                                                                                                                                                       
+                // U = 0.25 + 0.167 + 0.15 = 0.567 < ln(2)
+
+                                                                                                                                                    
             tasks = {
-                new PeriodicTask(1, "T_A", 20, 2, 10, 10),  // U=0.20
-                new PeriodicTask(2, "T_B", 15, 4, 20, 20),  // U=0.20
-                new PeriodicTask(3, "T_C", 10, 9, 50, 50),  // U=0.18
-                // sum(U)=0.58 < RM bound (75.68%) toate 3 policy-uri: 0 misses, CPU%=58
-            }; 
+                new PeriodicTask(1, "T1", 30, 1,  6,  6),  // prio=30, wcet=1, D=6,  T=6                                                                                             
+                new PeriodicTask(2, "T2", 10, 1,  5,  8),  // prio=10, wcet=1, D=5,  T=8                                                                                             
+                new PeriodicTask(3, "T3", 50, 2,  8, 10),  // prio=50, wcet=2, D=8,  T=10                                                                                            
+                new PeriodicTask(4, "T4", 40, 2,  7, 15),  // prio=40, wcet=2, D=7,  T=15                                                                                            
+                new PeriodicTask(5, "T5", 20, 3, 12, 20),  // prio=20, wcet=3, D=12, T=20                                                                                            
+                new PeriodicTask(6, "T6", 60, 3, 10, 30),  // prio=60, wcet=3, D=10, T=30                                                                                            
+            };                                                                                                                                                                       
+            // U = 1/6 + 1/8 + 2/10 + 2/15 + 3/20 + 3/30 = 0.875 < 1 
+
 
             for (Task* t : tasks)
                 stats.registerTask(t->getId(), t->getName(), t->getType());
@@ -82,7 +102,7 @@ int main() {
             Dashboard dashboard(&queue, &stats);
             thread dashboard_thread(&Dashboard::run, &dashboard);
 
-            sched.run(200);
+            sched.run(360);
             dashboard_thread.join();
 
             string snapshot_file = "scheduler/stats/csv/snapshot_" + policy->getName() + ".csv";
