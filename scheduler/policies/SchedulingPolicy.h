@@ -4,6 +4,11 @@
 #include "../tasks/PeriodicTask.h"
 #include <string>
 
+
+
+enum class PolicyType { Static, Dynamic };
+
+
 // clasa de baza abstracta - de aici o sa am fiecare clasa in functie de ce algoritm de task scheduler vreau sa folosesc
 class SchedulingPolicy {
 public:
@@ -15,13 +20,15 @@ public:
 
     virtual std::string getName() const = 0;
 
+    virtual PolicyType getPolicyType() const =0;
+
     SchedulingPolicy() = default;
     SchedulingPolicy(const SchedulingPolicy& other) = default;
     SchedulingPolicy& operator=(const SchedulingPolicy& other) = default;
 
     friend std::ostream& operator<<(std::ostream& out, const SchedulingPolicy& p) {
         out << p.getName();
-        return out;
+        return out; 
     }
 
     friend std::istream& operator>>(std::istream& in, SchedulingPolicy&) { 
