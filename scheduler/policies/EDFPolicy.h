@@ -9,6 +9,11 @@ public:
         return a->getAbsoluteDeadline() < b->getAbsoluteDeadline();
     }
 
+
+    bool verifySchedulability(const std::vector<Task*>& allTasks) const override {
+    return Stats::computeUtilization(allTasks) <= 1.0;
+    }
+
     std::string getName() const override { return "EDF"; }
 
     EDFPolicy() = default;

@@ -1,5 +1,5 @@
-#include "SchedulingPolicy.h"
 #pragma once
+#include "SchedulingPolicy.h"
 // rate monotonic --> perioada mai mica = prioritate mai mare, practic prioritizez cel care dureaza cel mai putin
 // merge doar pe taskuri periodice, pt ca practic am prioritatea invers proportionala cu perioada
 // daca n am perioada nu am prioritate, ceea ce e imposibil
@@ -15,7 +15,13 @@ public:
 
         if (!priorityA || !priorityB) return false;  // fallback daca nu sunt periodice
         return priorityA->getPeriod() < priorityB->getPeriod();
-    }   
+    }       
+
+    
+    bool verifySchedulability(const std::vector<Task*>& allTasks) const override {
+        if (Stats::computeUtilization(allTasks) > 1.0) return false;
+        return runRTA(sortedByPriority(allTasks));
+    }
 
     std::string getName() const override { return "Rate Monotonic"; }
 
