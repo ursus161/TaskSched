@@ -1,8 +1,10 @@
 #pragma once
 #include "../scheduler/stats/EventQueue.h"
 #include "../stats/Stats.h"
+#include "../policies/SchedulingPolicy.h"
 #include <unordered_map>
 #include <string>
+#include <vector>
 
 struct TaskRow {
 
@@ -19,6 +21,9 @@ private:
     Stats* stats;       // sursa autoritara pentru CPU%, idle_ticks — elimina duplicarea de stare
 
     //astea sunt starile globale ale CPU ului single core
+
+    bool schedulable = false;
+    std::string policy_name = "N/A";
 
     int current_time = 0;
     int running_id = -1;
@@ -37,7 +42,7 @@ public:
     Dashboard(const Dashboard& dashboard) ;
     ~Dashboard() = default;
     Dashboard&  operator=(const Dashboard& dashboard) ;
-    Dashboard(EventQueue* q, Stats* s); // idee bazata pe htop-ul din linux
+    Dashboard(EventQueue* q, Stats* s, const SchedulingPolicy* p, const std::vector<Task*>& tasks);
 
     friend std::ostream& operator<<(std::ostream& out, const Dashboard& sched);
     friend std::istream& operator>>(std::istream& in, Dashboard& sched);

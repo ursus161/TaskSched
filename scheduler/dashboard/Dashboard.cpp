@@ -6,8 +6,16 @@
 #include <iomanip>
 
 Dashboard::Dashboard() : queue(nullptr), stats(nullptr) {}
-Dashboard::Dashboard(EventQueue* q, Stats* s) : queue(q), stats(s) {}
-Dashboard::Dashboard(const Dashboard& other) : queue(other.queue), stats(other.stats) {}
+Dashboard::Dashboard(EventQueue* q, Stats* s, const SchedulingPolicy* p, const std::vector<Task*>& tasks)
+    : queue(q), stats(s) {
+    if (p && !tasks.empty()) {
+        policy_name = p->getName();
+        schedulable = p->verifySchedulability(tasks);
+    }
+}
+Dashboard::Dashboard(const Dashboard& other)
+    : queue(other.queue), stats(other.stats),
+      schedulable(other.schedulable), policy_name(other.policy_name) {}
 
 Dashboard& Dashboard::operator=(const Dashboard& other) {
     if (this == &other) return *this;
@@ -150,7 +158,9 @@ void Dashboard::render() {
 
     std::cout << padding << "Time: " << current_time + 1 << " tick  |  CPU: "
             << std::fixed << std::setprecision(1) << cpu_pct << "%"
-            << "  |  Idle ticks: " << idle << "\n";
+            << "  |  Idle ticks: " << idle << "\n"
+            << "                                                               |  Is schedulable? [" << policy_name << "]: "
+            << (schedulable ? "\033[32mYes\033[0m" : "\033[31mNo\033[0m") << "\n";
     std::cout << padding << "Running: " << (running_id == -1 ? "idle" : running_name) << "\n";
     std::cout << padding ;   std::cout << "----------------------------------------\n";
     std::cout << padding << std::left

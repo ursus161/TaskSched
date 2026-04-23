@@ -109,7 +109,7 @@ int main() {
             Scheduler sched(policy, &stats, &queue);
             for (Task* t : tasks) sched.addTask(t);
 
-            Dashboard dashboard(&queue, &stats);
+            Dashboard dashboard(&queue, &stats, policy, tasks);
             thread dashboard_thread(&Dashboard::run, &dashboard);
 
             sched.run(600); //hyperperioada este lcm din perioade, un nr de tickuri astfel incat totul sa fie rulat
