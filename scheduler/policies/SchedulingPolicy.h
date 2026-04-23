@@ -6,7 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
-
+#include <stdexcept>
 // clasa de baza abstracta - de aici o sa am fiecare clasa in functie de ce algoritm de task scheduler vreau sa folosesc
 class SchedulingPolicy {
 public:
@@ -21,6 +21,8 @@ public:
 
 protected:
     std::vector<Task*> sortedByPriority(const std::vector<Task*>& tasks) const {
+        if (tasks.empty()) throw std::invalid_argument("[sortedByPriority]: lista de vectori neinitializata");
+
         std::vector<Task*> sorted = tasks;
         std::sort(sorted.begin(), sorted.end(), [this](Task* a, Task* b) {
             return isHigherPriority(a, b);
@@ -29,6 +31,7 @@ protected:
     }
     //Response Type Analysis
     bool runRTA(const std::vector<Task*>& sorted) const {
+        if (sorted.empty()) throw std::invalid_argument("[runRTA]: lista de vectori neinitializata");
         for (size_t i = 0; i < sorted.size(); ++i) {
             if (!dynamic_cast<PeriodicTask*>(sorted[i])) continue;
             double Ci = sorted[i]->getWCET();
