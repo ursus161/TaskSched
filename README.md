@@ -148,4 +148,4 @@ Priority saturates at 100% because T4's perpetual misses keep the ready queue pe
 
 **Short term:** external configuration via file, schedulability analysis output at startup (response-time analysis per task).
 
-**Medium term:** multi-core scheduling with a load balancer.
+**Medium term:** multi-core adaptive partitioned scheduling.

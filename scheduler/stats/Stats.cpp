@@ -119,6 +119,8 @@ void Stats::exportSnapshotCSV(const std::string& filename) const {
     if (!fout.is_open())
         throw std::runtime_error("Nu pot deschide fisierul pentru snapshot: " + filename);
     try {
+        fout << "META,DeadlineMisses," << total_deadline_misses << "\n";
+        fout << "META,CPUUtil," << getCpuUtilization() << "\n";
         fout << "Tick,CPU_Task,CPU_Util%,TaskID,Name,State\n";
         for (const auto& row : snapshot_log)
             fout << row.tick << "," << row.cpu_task << "," << row.cpu_util
@@ -138,12 +140,11 @@ std::vector<SnapshotRow> Stats::getSnapshotAt(const std::string& filename, int t
         throw std::runtime_error("Nu pot deschide fisierul snapshot: " + filename);
 
     std::string line;
-    std::getline(fin, line); // skip header
-
     int best_tick = -1;
     std::vector<SnapshotRow> all_rows;
 
     while (std::getline(fin, line)) {
+        if (line.empty() || !std::isdigit(static_cast<unsigned char>(line[0]))) continue;
         std::istringstream ss(line);
         std::string token;
         SnapshotRow row;
@@ -179,6 +180,29 @@ std::ostream& operator<<(std::ostream& out, const Stats& s) {
         out << "  [id=" << pair.first << "] " << pair.second << "\n";
     }
     return out;
+}
+
+SummaryData Stats::getSummaryFromCSV(const std::string& filename) {
+    std::ifstream fin(filename);
+    if (!fin.is_open())
+        throw std::runtime_error("Nu pot deschide fisierul snapshot: " + filename);
+    SummaryData result{0, 0.0, false};
+    std::string line;
+    while (std::getline(fin, line)) {
+        if (line.substr(0, 5) != "META,") continue;
+        std::istringstream ss(line.substr(5));
+        std::string key, value;
+        std::getline(ss, key, ',');
+        std::getline(ss, value);
+        if (key == "DeadlineMisses") { 
+            result.deadline_misses = std::stoi(value);
+            result.valid = true;
+         } else if (key == "CPUUtil") {
+             result.cpu_util = std::stod(value);        
+             result.valid = true;
+             }
+    }
+    return result;
 }
 
 std::istream& operator>>(std::istream& in, Stats& s) {

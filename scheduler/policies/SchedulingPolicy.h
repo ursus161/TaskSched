@@ -31,7 +31,7 @@ protected:
     }
     //Response Type Analysis
     bool runRTA(const std::vector<Task*>& sorted) const {
-        if (sorted.empty()) throw std::invalid_argument("[runRTA]: lista de vectori neinitializata");
+        if (sorted.empty()) throw std::invalid_argument("[runRTA]: lista de vectori neinitializata/goala");
         for (size_t i = 0; i < sorted.size(); ++i) {
             if (!dynamic_cast<PeriodicTask*>(sorted[i])) continue;
             double Ci = sorted[i]->getWCET();
@@ -46,7 +46,7 @@ protected:
                 }
                 double next_t = Ci + interference;
                 if (next_t > Di) return false;
-                if (std::abs(next_t - t) < 1e-9) break;
+                if (std::abs(next_t - t) < 1e-9) break; //aritmetica pe float inexacta
                 t = next_t;
             }
         }

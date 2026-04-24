@@ -16,6 +16,12 @@ struct SnapshotRow {
     std::string state;
 };
 
+struct SummaryData {
+    int deadline_misses;
+    double cpu_util;
+    bool valid; // false daca CSV-ul nu contine META linii
+};
+
 class Stats {
 private:
     int active_ticks;
@@ -57,6 +63,7 @@ public:
     void recordSnapshot(int tick, const std::string& cpu_task, double cpu_util, const std::vector<Task*>& tasks);
     void exportSnapshotCSV(const std::string& filename) const;
     static std::vector<SnapshotRow> getSnapshotAt(const std::string& filename, int tick);
+    static SummaryData getSummaryFromCSV(const std::string& filename);
 
 
 
