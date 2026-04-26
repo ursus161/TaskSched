@@ -107,6 +107,8 @@ static vector<Task*> createTasks() {
         new PeriodicTask(8,  "T8",  80, 1, 15, 15),  // prio=80,  wcet=1, D=15, T=15 | D=T: DM rank 8,  RM rank  5
         new PeriodicTask(9,  "T9",  90, 1, 20, 20),  // prio=90,  wcet=1, D=20, T=20 | D=T: DM rank 9,  RM rank  6
         new PeriodicTask(10, "T10",100, 1, 25, 25),  // prio=100, wcet=1, D=25, T=25 | D=T: DM rank 10, RM rank  8
+        new AperiodicTask(11, "T_LOG", 5, 2, 30, 37),
+        new SporadicTask(12, "T_BTN", 50, 1, 8, 100, {50, 180, 310, 450})
     };
     // U = 1/40+1/30+1/24+1/5+1/8+2/10+1/12+1/15+1/20+1/25 = 0.865 < 1
     // EDF:      0 misses  (U < 1, optim dinamic)
@@ -206,10 +208,9 @@ int main() {
             for (Task* t : tasks) sched.addTask(t);
 
             Dashboard dashboard(&queue, &stats, policy, tasks);
-            thread dashboard_thread(&Dashboard::run, &dashboard);
+            jthread dashboard_thread(&Dashboard::run, &dashboard); //destructorul face automat join(), util cand se lucreaza cu exceptii
 
             sched.run(600); //hyperperioada este lcm din perioade, un nr de tickuri astfel incat totul sa fie rulat
-            dashboard_thread.join();
 
             stats.exportSnapshotCSV(snapshot_file);
 
