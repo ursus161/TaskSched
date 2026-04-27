@@ -97,18 +97,18 @@ static vector<Task*> createTasks() {
     // Deadlines constranste (D < T): DM le da prioritate mare, RM le ignora
     // Deadlines implicite (D = T): DM si RM sunt echivalente pe aceste taskuri
     return {
-        new PeriodicTask(1,  "T1",  20, 1,  4, 40),  // prio=20,  wcet=1, D=4,  T=40 | D<T: DM rank 2,  RM rank 10
-        new PeriodicTask(2,  "T2",  30, 1,  6, 30),  // prio=30,  wcet=1, D=6,  T=30 | D<T: DM rank 4,  RM rank  9
-        new PeriodicTask(3,  "T3",  10, 1,  3, 24),  // prio=10,  wcet=1, D=3,  T=24 | D<T: DM rank 1,  RM rank  7
-        new PeriodicTask(4,  "T4",  35, 1,  5,  5),  // prio=35,  wcet=1, D=5,  T=5  | D=T: DM rank 3,  RM rank  1
-        new PeriodicTask(5,  "T5",  40, 1,  8,  8),  // prio=40,  wcet=1, D=8,  T=8  | D=T: DM rank 5,  RM rank  2
-        new PeriodicTask(6,  "T6",  60, 2, 10, 10),  // prio=60,  wcet=2, D=10, T=10 | D=T: DM rank 6,  RM rank  3
-        new PeriodicTask(7,  "T7",  70, 1, 12, 12),  // prio=70,  wcet=1, D=12, T=12 | D=T: DM rank 7,  RM rank  4
-        new PeriodicTask(8,  "T8",  80, 1, 15, 15),  // prio=80,  wcet=1, D=15, T=15 | D=T: DM rank 8,  RM rank  5
-        new PeriodicTask(9,  "T9",  90, 1, 20, 20),  // prio=90,  wcet=1, D=20, T=20 | D=T: DM rank 9,  RM rank  6
-        new PeriodicTask(10, "T10",100, 1, 25, 25),  // prio=100, wcet=1, D=25, T=25 | D=T: DM rank 10, RM rank  8
-        new AperiodicTask(11, "T_LOG", 5, 2, 30, 37),
-        new SporadicTask(12, "T_BTN", 50, 1, 8, 100, {50, 180, 310, 450})
+        new PeriodicTask(  "T1",  20, 1,  4, 40),  // prio=20,  wcet=1, D=4,  T=40 | D<T: DM rank 2,  RM rank 10
+        new PeriodicTask(  "T2",  30, 1,  6, 30),  // prio=30,  wcet=1, D=6,  T=30 | D<T: DM rank 4,  RM rank  9
+        new PeriodicTask( "T3",  10, 1,  3, 24),  // prio=10,  wcet=1, D=3,  T=24 | D<T: DM rank 1,  RM rank  7
+        new PeriodicTask(  "T4",  35, 1,  5,  5),  // prio=35,  wcet=1, D=5,  T=5  | D=T: DM rank 3,  RM rank  1
+        new PeriodicTask(  "T5",  40, 1,  8,  8),  // prio=40,  wcet=1, D=8,  T=8  | D=T: DM rank 5,  RM rank  2
+        new PeriodicTask( "T6",  60, 2, 10, 10),  // prio=60,  wcet=2, D=10, T=10 | D=T: DM rank 6,  RM rank  3
+        new PeriodicTask( "T7",  70, 1, 12, 12),  // prio=70,  wcet=1, D=12, T=12 | D=T: DM rank 7,  RM rank  4
+        new PeriodicTask("T8",  80, 1, 15, 15),  // prio=80,  wcet=1, D=15, T=15 | D=T: DM rank 8,  RM rank  5
+        new PeriodicTask( "T9",  90, 1, 20, 20),  // prio=90,  wcet=1, D=20, T=20 | D=T: DM rank 9,  RM rank  6
+        new PeriodicTask( "T10",100, 1, 25, 25),  // prio=100, wcet=1, D=25, T=25 | D=T: DM rank 10, RM rank  8
+        // new AperiodicTask("T_LOG", 5, 2, 30, 37),
+        // new SporadicTask("T_BTN", 50, 1, 8, 100, {50, 180, 310, 450})
     };
     // U = 1/40+1/30+1/24+1/5+1/8+2/10+1/12+1/15+1/20+1/25 = 0.865 < 1
     // EDF:      0 misses  (U < 1, optim dinamic)

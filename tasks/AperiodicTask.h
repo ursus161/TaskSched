@@ -8,7 +8,7 @@ protected:
 
 public:
     
-    AperiodicTask(int id, const std::string& name, int priority,
+    AperiodicTask(const std::string& name, int priority,
                   int worstCaseExecutionTime, int deadline, int arrival_time);
     
     AperiodicTask();

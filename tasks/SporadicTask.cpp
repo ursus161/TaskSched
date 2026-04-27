@@ -2,13 +2,13 @@
 #include <iostream>
 using namespace std;
 
-SporadicTask::SporadicTask(int id, const string& name, int priority,
+SporadicTask::SporadicTask( const string& name, int priority,
                            int worstCaseExecutionTime, int deadline, int minimumInterArrivalTime,
                            const vector<int>& triggers)
 
-    : Task(id, name, priority, worstCaseExecutionTime, deadline),
-      PeriodicTask(id, name, priority, worstCaseExecutionTime, deadline, minimumInterArrivalTime, 0),
-      AperiodicTask(id, name, priority, worstCaseExecutionTime, deadline, 0),
+    : Task(name, priority, worstCaseExecutionTime, deadline),
+      PeriodicTask( name, priority, worstCaseExecutionTime, deadline, minimumInterArrivalTime, 0),
+      AperiodicTask( name, priority, worstCaseExecutionTime, deadline, 0),
       minimumInterArrivalTime(minimumInterArrivalTime),
       last_activation(-minimumInterArrivalTime),
       triggers(triggers),
@@ -25,7 +25,6 @@ next_trigger_index(0) {}
 
 SporadicTask::SporadicTask(const SporadicTask& other)
     : Task(other),
-    
       PeriodicTask(other),
       AperiodicTask(other),
       minimumInterArrivalTime(other.minimumInterArrivalTime),

@@ -3,8 +3,10 @@
 #include <stdexcept>
 using namespace std;
 
-Task::Task(int id, const string& name, int priority, int worstCaseExecutionTime, int deadline)
-    :id(id),
+int Task::next_id = 1;
+
+Task::Task(const string& name, int priority, int worstCaseExecutionTime, int deadline)
+    :id(++next_id),
      name(name),
      priority(priority),
      worstCaseExecutionTime(worstCaseExecutionTime),
@@ -27,7 +29,7 @@ Task::Task(const Task& other)
       absolute_deadline(other.absolute_deadline) {}
 
 Task::Task() 
-    : id(0), name(""), priority(0), worstCaseExecutionTime(0), deadline(0),
+    : id(++next_id), name(""), priority(0), worstCaseExecutionTime(0), deadline(0),
       state(TaskState::Inactive), remaining_time(0), absolute_deadline(0) {}
 
 Task::~Task() {}

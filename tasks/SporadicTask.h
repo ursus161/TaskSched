@@ -14,7 +14,7 @@ protected:
     int next_trigger_index;
 
 public:
-    SporadicTask(int id, const std::string& name, int priority,
+    SporadicTask(const std::string& name, int priority,
                  int worstCaseExecutionTime, int deadline, int minimumInterArrivalTime,
                  const std::vector<int>& triggers);
     SporadicTask(const SporadicTask& other);

@@ -2,9 +2,9 @@
 #include <iostream>
 using namespace std;
 
-AperiodicTask::AperiodicTask(int id, const string& name, int priority,
+AperiodicTask::AperiodicTask(const string& name, int priority,
                              int worstCaseExecutionTime, int deadline, int arrival_time)
-    : Task(id, name, priority, worstCaseExecutionTime, deadline),
+    : Task(name, priority, worstCaseExecutionTime, deadline),
       arrival_time(arrival_time),
       released(false) {}
 

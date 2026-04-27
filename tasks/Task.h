@@ -19,6 +19,7 @@ class Task {
 protected:
 
     int id;
+    static int next_id;
     std::string name; //ptr logging si debug
     int priority; // voi folosi un max-heap unde voi avea nevoie de campul acesta ptr coada de prioritati
     int worstCaseExecutionTime; // worst case exec time
@@ -38,7 +39,7 @@ protected:
     void setAbsoluteDeadline(int d);
 
 public: 
-    Task(int id, const std::string& name, int priority, int worstCaseExecutionTime, int deadline);
+    Task( const std::string& name, int priority, int worstCaseExecutionTime, int deadline);
     Task(const Task& other);
 
     Task();

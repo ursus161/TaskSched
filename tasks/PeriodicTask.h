@@ -9,7 +9,7 @@ protected:
     int jobs_released;
 
 public:
-    PeriodicTask(int id, const std::string& name, int priority,
+    PeriodicTask( const std::string& name, int priority,
         int worstCaseExecutionTime, int deadline, int period, int first_release = 0);
         
     PeriodicTask();

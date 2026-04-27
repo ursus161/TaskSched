@@ -4,10 +4,10 @@
 #include "PeriodicTask.h"
 using namespace std;
 
-PeriodicTask::PeriodicTask(int id, const string& name, int priority,
+PeriodicTask::PeriodicTask(const string& name, int priority,
                  int worstCaseExecutionTime, int deadline, int period, int first_release ) :
 
-                 Task(id,name,priority,worstCaseExecutionTime,deadline),
+                 Task(name,priority,worstCaseExecutionTime,deadline),
 
                 period(period),
                 first_release(first_release),
