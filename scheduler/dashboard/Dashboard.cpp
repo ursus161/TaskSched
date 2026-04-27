@@ -1,9 +1,14 @@
 #include "Dashboard.h"
 #include <iostream>
 #include <stdexcept>
-#include <sys/ioctl.h>
-#include <unistd.h>
 #include <iomanip>
+
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <sys/ioctl.h>
+    #include <unistd.h>
+#endif
 
 Dashboard::Dashboard() : queue(nullptr), stats(nullptr) {}
 Dashboard::Dashboard(EventQueue* q, Stats* s, const SchedulingPolicy* p, const std::vector<Task*>& tasks)
@@ -34,12 +39,26 @@ std::istream& operator>>(std::istream& in, Dashboard& d) {
 }
 
 int Dashboard::getTerminalWidth() {
+    #ifdef _WIN32
+
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    if (hConsole != INVALID_HANDLE_VALUE && GetConsoleScreenBufferInfo(hConsole, &csbi)) {
+        // srWindow = portiunea vizibila a buffer-ului consolei
+        
+        return csbi.srWindow.Right - csbi.srWindow.Left + 1;
+    }
+    return 80;  // fallback default
+
+    #else
     //unix system based instructions, va urma si un fix pentru OS Windows
     struct winsize w;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == 0) {// syscall ul a reusit 
         return w.ws_col;  // numarul de coloane
     }
     return 80;  // fallback default
+
+    #endif
 }
 
 std::string Dashboard::colorForState(const std::string& state) {
