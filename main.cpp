@@ -80,6 +80,7 @@ static SchedulingPolicy* selectPolicy(const string& padding) {
 }
 
 static vector<Task*> createTasks() {
+    Task::resetIdCounter();
     // tasks = {
     //     new PeriodicTask(1, "T_A", 20, 2, 10, 10),  // U=0.20
     //     new PeriodicTask(2, "T_B", 15, 4, 20, 20),  // U=0.20

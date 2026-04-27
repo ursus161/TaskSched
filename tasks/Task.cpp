@@ -3,7 +3,7 @@
 #include <stdexcept>
 using namespace std;
 
-int Task::next_id = 1;
+int Task::next_id = 0;
 
 Task::Task(const string& name, int priority, int worstCaseExecutionTime, int deadline)
     :id(++next_id),
@@ -88,3 +88,6 @@ void Task::setState(TaskState s) { this->state = s; }
 void Task::setRemainingTime(int t) { this->remaining_time = t; }
 void Task::setAbsoluteDeadline(int d) { this->absolute_deadline = d; }
 
+void Task::resetIdCounter(){
+    next_id = 0;
+}
