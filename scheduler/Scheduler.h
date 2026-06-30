@@ -2,62 +2,47 @@
 
 #include "Task.h"
 #include <vector>
-#include <queue>
+#include <memory>
 #include "policies/SchedulingPolicy.h"
+#include "queue/ReadyQueue.h"
 #include "stats/Stats.h"
 #include "stats/EventQueue.h"
-// pentru comparat taskuri dupa prioritate
-// returneaza true daca a are prioritate mai mica decat b
-// priority_queue e max-heap, deci cel cu prioritate mai mare iese primul
-// ideea e ca priority queue vrea sa mi instantieze comparatorul PolicyComparator cmp, motivul pentru care l am facut struct
-// si o sa am in implementarea interna a PQ cmp.operator()(task1,task2)
-struct PolicyComparator {
-
-    SchedulingPolicy* policy;
-
-    bool operator()(Task* a, Task* b) const {
-        return !policy->isHigherPriority(a,b);
-    }
-};
 
 class Scheduler {
 private:
-
     SchedulingPolicy* policy;
-
     Stats* stats;
-
     EventQueue* event_queue;
+
     // toate taskurile din sistem, nu le detinem
     std::vector<Task*> tasks;
 
     // taskul care ruleaza acum, nullptr daca CPU idle
-    Task* current_running;  
+    Task* current_running;
 
     // timpul curent al simularii in tickuri
-
-
     int current_time;
 
-    // ready queue ordonata dupa prioritate, cele 3 elemente din pq sunt tipul de obiect tinut in pq, unde le stocheaza si dupa ce metoda imi face heap ul intern
-    std::priority_queue<Task*, std::vector<Task*>, PolicyComparator> ready_queue;
+    // ready queue; implementarea concreta e aleasa in functie de policy->isDynamic()
+    std::unique_ptr<ReadyQueue> ready_queue;
 
     void dispatch(Task* new_running);
 
-    int task_start_time =0;
+    int task_start_time = 0;
+
+    std::unique_ptr<ReadyQueue> makeQueue(SchedulingPolicy* p);
 
 public:
     Scheduler();
     Scheduler(SchedulingPolicy* policy, Stats* stats, EventQueue* event_queue);
-    Scheduler(const Scheduler& sched) ;
+    Scheduler(const Scheduler& sched);
     Scheduler& operator=(const Scheduler& other);
     ~Scheduler() = default;
 
     friend std::ostream& operator<<(std::ostream& out, const Scheduler& sched);
     friend std::istream& operator>>(std::istream& in, Scheduler& sched);
 
-    
     void setPolicy(SchedulingPolicy* p);
-    void addTask(Task* task); // probabil citirea de aici o vom face ori de la un CSV ori de la un user, detaliu de implementare pe care l vom vedea ulterior
-    void run(int duration); // main logic shall be here
+    void addTask(Task* task);
+    void run(int duration);
 };

@@ -19,6 +19,13 @@ public:
 
     virtual std::string getName() const = 0;
 
+    // politicile dinamice (ex. LLF) recalculeaza prioritatea la fiecare tick,
+    // cele statice (Priority/RM/EDF/DM) au prioritate stabila pe durata unui job
+    virtual bool isDynamic() const { return false; }
+
+    // apelat de scheduler inainte de selectie, no-op pentru politici statice
+    virtual void setCurrentTime(int) {}
+
 protected:
     std::vector<Task*> sortedByPriority(const std::vector<Task*>& tasks) const {
         if (tasks.empty()) throw std::invalid_argument("[sortedByPriority]: lista de vectori neinitializata");

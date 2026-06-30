@@ -6,6 +6,7 @@
 #include "scheduler/policies/RateMonotonicPolicy.h"
 #include "scheduler/policies/DeadlineMonotonicPolicy.h"
 #include "scheduler/policies/EDFPolicy.h"
+#include "scheduler/policies/LLFPolicy.h"
 #include "scheduler/stats/Stats.h"
 #include "scheduler/stats/EventQueue.h"
 #include "scheduler/dashboard/Dashboard.h"
@@ -61,6 +62,7 @@ static SchedulingPolicy* selectPolicy(const string& padding) {
         cout << padding << "2. Rate Monotonic\n";
         cout << padding << "3. EDF\n";
         cout << padding << "4. Deadline Monotonic\n";
+        cout << padding << "5. LLF\n";
         cout << padding << "Optiune: ";
 
         if (!readInt(choice)) {
@@ -73,6 +75,7 @@ static SchedulingPolicy* selectPolicy(const string& padding) {
             case 2: policy = new RateMonotonicPolicy(); break;
             case 3: policy = new EDFPolicy(); break;
             case 4: policy = new DeadlineMonotonicPolicy(); break;
+            case 5: policy = new LLFPolicy(); break;
             default: cout << padding << "Optiune invalida, incearca din nou.\n";
         }
     }
