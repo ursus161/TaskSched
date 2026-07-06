@@ -5,11 +5,9 @@
 #include <mutex>
 #include <condition_variable>
 
-// incerc sa folosesc o arhitectura asemanatoare rabbitmq pentru comunicarea intre cele 2 thread-uri
-// coada thread-safe prin care scheduler-ul (producer) trimite evenimente
-// si dashboard-ul (consumer) le consuma
-// folosesc un mutex sa previn eventualele race conditions, nu vreau 2 threaduri la queue in acelasi timp
-// si condition_variable pentru a pune consumer-ul la somn cand coada e goala, in loc sa o verifice continuu (busy wait)
+// coada thread-safe de evenimente in care scheduler-ul (producer) pune evenimente.
+// a fost gandita pentru un consumer separat (dashboard-ul, scos acum); o pastrez
+// ca punct de extensie thread-safe (mutex + condition_variable) daca revine un consumer
 class EventQueue {
 private:
     std::queue<Event> q;              // coada propriu-zisa

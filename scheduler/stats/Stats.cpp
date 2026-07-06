@@ -1,20 +1,7 @@
 #include "Stats.h"
-#include <fstream>
-#include <sstream>
 #include <stdexcept>
 #include "../tasks/PeriodicTask.h"
 
-static std::string stateToString(TaskState s) {
-    switch (s) {
-        case TaskState::Inactive:  return "inactive";
-        case TaskState::Ready:     return "ready";
-        case TaskState::Running:   return "running";
-        case TaskState::Blocked:   return "blocked";
-        case TaskState::Finished:  return "finished";
-        case TaskState::Missed:    return "missed";
-        default:                   return "unknown";
-    }
-}
 Stats::Stats()
     : active_ticks(0), idle_ticks(0),
       total_preemptions(0), total_deadline_misses(0) {}
@@ -24,8 +11,7 @@ Stats::Stats(const Stats& other)
       idle_ticks(other.idle_ticks),
       total_preemptions(other.total_preemptions),
       total_deadline_misses(other.total_deadline_misses),
-      per_task(other.per_task),
-      snapshot_log(other.snapshot_log) {}
+      per_task(other.per_task) {}
 
 Stats& Stats::operator=(const Stats& other) {
     if (this == &other) return *this;
@@ -34,7 +20,6 @@ Stats& Stats::operator=(const Stats& other) {
     total_preemptions = other.total_preemptions;
     total_deadline_misses = other.total_deadline_misses;
     per_task = other.per_task;
-    snapshot_log = other.snapshot_log;
     return *this;
 }
 
@@ -109,64 +94,6 @@ void Stats::onTick(bool cpu_active) {
     else idle_ticks++;
 }
 
-void Stats::recordSnapshot(int tick, const std::string& cpu_task, double cpu_util, const std::vector<Task*>& tasks) {
-    for (Task* t : tasks)
-        snapshot_log.push_back({tick, cpu_task, cpu_util, t->getId(), t->getName(), stateToString(t->getState())});
-}
-
-void Stats::exportSnapshotCSV(const std::string& filename) const {
-    std::ofstream fout(filename);
-    if (!fout.is_open())
-        throw std::runtime_error("Nu pot deschide fisierul pentru snapshot: " + filename);
-    try {
-        fout << "META,DeadlineMisses," << total_deadline_misses << "\n";
-        fout << "META,CPUUtil," << getCpuUtilization() << "\n";
-        fout << "Tick,CPU_Task,CPU_Util%,TaskID,Name,State\n";
-        for (const auto& row : snapshot_log)
-            fout << row.tick << "," << row.cpu_task << "," << row.cpu_util
-                 << "," << row.task_id << "," << row.task_name << "," << row.state << "\n";
-        fout.close();
-        if (fout.fail())
-            throw std::runtime_error("Eroare la scriere snapshot: " + filename);
-    } catch (...) {
-        fout.close();
-        throw;
-    }
-}
-
-std::vector<SnapshotRow> Stats::getSnapshotAt(const std::string& filename, int tick) {
-    std::ifstream fin(filename);
-    if (!fin.is_open())
-        throw std::runtime_error("Nu pot deschide fisierul snapshot: " + filename);
-
-    std::string line;
-    int best_tick = -1;
-    std::vector<SnapshotRow> all_rows;
-
-    while (std::getline(fin, line)) {
-        if (line.empty() || !std::isdigit(static_cast<unsigned char>(line[0]))) continue;
-        std::istringstream ss(line);
-        std::string token;
-        SnapshotRow row;
-        std::getline(ss, token, ',');   row.tick = std::stoi(token);
-        std::getline(ss, row.cpu_task, ',');
-        std::getline(ss, token, ',');   row.cpu_util = std::stod(token);
-        std::getline(ss, token, ',');   row.task_id = std::stoi(token);
-        std::getline(ss, row.task_name, ',');
-        std::getline(ss, row.state);
-        if (row.tick <= tick && row.tick > best_tick)
-            best_tick = row.tick;
-        all_rows.push_back(row);
-    }
-
-    if (best_tick == -1) return {};
-    std::vector<SnapshotRow> result;
-    for (const auto& r : all_rows)
-        if (r.tick == best_tick) result.push_back(r);
-    return result;
-}
-
-
 std::ostream& operator<<(std::ostream& out, const Stats& s) {
     out << "=== Simulation Report ===\n";
     out << "CPU utilization: " << s.getCpuUtilization() << "%\n";
@@ -180,29 +107,6 @@ std::ostream& operator<<(std::ostream& out, const Stats& s) {
         out << "  [id=" << pair.first << "] " << pair.second << "\n";
     }
     return out;
-}
-
-SummaryData Stats::getSummaryFromCSV(const std::string& filename) {
-    std::ifstream fin(filename);
-    if (!fin.is_open())
-        throw std::runtime_error("Nu pot deschide fisierul snapshot: " + filename);
-    SummaryData result{0, 0.0, false};
-    std::string line;
-    while (std::getline(fin, line)) {
-        if (line.substr(0, 5) != "META,") continue;
-        std::istringstream ss(line.substr(5));
-        std::string key, value;
-        std::getline(ss, key, ',');
-        std::getline(ss, value);
-        if (key == "DeadlineMisses") { 
-            result.deadline_misses = std::stoi(value);
-            result.valid = true;
-         } else if (key == "CPUUtil") {
-             result.cpu_util = std::stod(value);        
-             result.valid = true;
-             }
-    }
-    return result;
 }
 
 std::istream& operator>>(std::istream& in, Stats& s) {

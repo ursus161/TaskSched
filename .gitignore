@@ -33,3 +33,8 @@
 
 
 tasksched
+
+# artefacte generate de rulari / analiza
+traces/*.csv
+metrics.csv
+*.png

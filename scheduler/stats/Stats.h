@@ -7,21 +7,6 @@
 #include "../tasks/Task.h"
 
 
-struct SnapshotRow {
-    int tick;
-    std::string cpu_task;
-    double cpu_util;
-    int task_id;
-    std::string task_name;
-    std::string state;
-};
-
-struct SummaryData {
-    int deadline_misses;
-    double cpu_util;
-    bool valid; // false daca CSV-ul nu contine META linii
-};
-
 class Stats {
 private:
     int active_ticks;
@@ -29,7 +14,6 @@ private:
     int total_preemptions;
     int total_deadline_misses;
     std::unordered_map<int, TaskStats> per_task; //dictionar task id si statisticile taskului
-    std::vector<SnapshotRow> snapshot_log;
 
 public:
     Stats();
@@ -58,13 +42,6 @@ public:
     void onComplete(int task_id, int response_time);
     void onDeadlineMiss(int task_id);
     void onTick(bool cpu_active);
-
-
-    void recordSnapshot(int tick, const std::string& cpu_task, double cpu_util, const std::vector<Task*>& tasks);
-    void exportSnapshotCSV(const std::string& filename) const;
-    static std::vector<SnapshotRow> getSnapshotAt(const std::string& filename, int tick);
-    static SummaryData getSummaryFromCSV(const std::string& filename);
-
 
 
     friend std::ostream& operator<<(std::ostream& out, const Stats& s);

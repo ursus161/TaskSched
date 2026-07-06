@@ -6,23 +6,21 @@
 #include "scheduler/policies/RateMonotonicPolicy.h"
 #include "scheduler/policies/DeadlineMonotonicPolicy.h"
 #include "scheduler/policies/EDFPolicy.h"
-#include "scheduler/policies/LLFPolicy.h"
 #include "scheduler/stats/Stats.h"
 #include "scheduler/stats/EventQueue.h"
-#include "scheduler/dashboard/Dashboard.h"
+#include "scheduler/trace/CsvTraceSink.h"
 #include <iostream>
-#include <fstream>
 #include <vector>
-#include <thread>
+#include <memory>
+#include <string>
 #include <stdexcept>
 #include <limits>
+#include <ctime>
 
 using namespace std;
 
-static void clearScreen() {
-    cout << "\033[H\033[J" << flush;
-    cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
-}
+// ---- durata simularii = o hiperperioada completa a task set-ului din createTasks() ----
+static constexpr int DEFAULT_DURATION = 600;
 
 static bool readInt(int& val) {
     if (!(cin >> val)) {
@@ -33,233 +31,145 @@ static bool readInt(int& val) {
     return true;
 }
 
-static void waitEnter() {
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-    cin.get();
+// creeaza o instanta de policy dupa un tag (nume scurt sau numar de meniu)
+static unique_ptr<SchedulingPolicy> makePolicy(const string& tag) {
+    if (tag == "1" || tag == "priority")                    return make_unique<PriorityPolicy>();
+    if (tag == "2" || tag == "rm" || tag == "ratemonotonic") return make_unique<RateMonotonicPolicy>();
+    if (tag == "3" || tag == "edf")                          return make_unique<EDFPolicy>();
+    if (tag == "4" || tag == "dm" || tag == "deadlinemonotonic") return make_unique<DeadlineMonotonicPolicy>();
+    return nullptr;
 }
 
-static void showSnapshotAt(const string& file, int tick, const string& padding) {
-    auto rows = Stats::getSnapshotAt(file, tick);
-    if (rows.empty()) {
-        cout << padding << "Niciun snapshot disponibil pentru t<=" << tick << ".\n";
-        return;
+static unique_ptr<SchedulingPolicy> selectPolicyInteractive() {
+    while (true) {
+        cout << "\n=== Alege algoritmul de Task Scheduling: ===\n";
+        cout << "1. Priority\n";
+        cout << "2. Rate Monotonic\n";
+        cout << "3. EDF\n";
+        cout << "4. Deadline Monotonic\n";
+        cout << "0. Iesire\n";
+        cout << "Optiune: ";
+
+        int choice;
+        if (!readInt(choice)) { cout << "Input invalid, introdu un numar.\n"; continue; }
+        if (choice == 0) return nullptr;
+
+        auto policy = makePolicy(to_string(choice));
+        if (policy) return policy;
+        cout << "Optiune invalida, incearca din nou.\n";
     }
-    cout << "\n" << padding << "=== Snapshot la t=" << rows[0].tick << " ===\n";
-    cout << padding << "CPU: " << rows[0].cpu_task << " | Utilizare: " << rows[0].cpu_util << "%\n";
-    for (const auto& r : rows)
-        cout << padding << "  [" << r.task_id << "] " << r.task_name << " -> " << r.state << "\n";
-    cout << "\n" << padding << "Apasa Enter pentru a continua...";
-    waitEnter();
 }
 
-static SchedulingPolicy* selectPolicy(const string& padding) {
-    SchedulingPolicy* policy = nullptr;
-    int choice;
-    while (policy == nullptr) {
-        clearScreen();
-        cout << "\n" << padding << "=== Alege algoritmul de Task Scheduling: ===\n";
-        cout << padding << "1. Priority\n";
-        cout << padding << "2. Rate Monotonic\n";
-        cout << padding << "3. EDF\n";
-        cout << padding << "4. Deadline Monotonic\n";
-        cout << padding << "5. LLF\n";
-        cout << padding << "Optiune: ";
-
-        if (!readInt(choice)) {
-            cout << padding << "Input invalid, introdu un numar.\n";
-            continue;
-        }
-
-        switch (choice) {
-            case 1: policy = new PriorityPolicy(); break;
-            case 2: policy = new RateMonotonicPolicy(); break;
-            case 3: policy = new EDFPolicy(); break;
-            case 4: policy = new DeadlineMonotonicPolicy(); break;
-            case 5: policy = new LLFPolicy(); break;
-            default: cout << padding << "Optiune invalida, incearca din nou.\n";
-        }
-    }
-    return policy;
-}
-
+// task set fix; vezi README pentru derivarea rankurilor per policy si a hiperperioadei (600)
 static vector<Task*> createTasks() {
     Task::resetIdCounter();
-    // tasks = {
-    //     new PeriodicTask(1, "T_A", 20, 2, 10, 10),  // U=0.20
-    //     new PeriodicTask(2, "T_B", 15, 4, 20, 20),  // U=0.20
-    //     new PeriodicTask(3, "T_C", 10, 9, 50, 50),  // U=0.18
-    //     // sum(U)=0.58 < RM bound (75.68%) toate 3 policy-uri: 0 misses, CPU%=58
-    // };
-
-    // tasks = {
-    //     new PeriodicTask(1, "T_A", 20, 2,  8,  8),  // deadline=8,  period=8
-    //     new PeriodicTask(2, "T_B", 10, 2,  4, 12),  // deadline=4,  period=12
-    //     new PeriodicTask(3, "T_C", 30, 3, 10, 20),  // deadline=10, period=20
-    // };
-    // U = 0.25 + 0.167 + 0.15 = 0.567 < ln(2)
-
-    // Deadlines constranste (D < T): DM le da prioritate mare, RM le ignora
-    // Deadlines implicite (D = T): DM si RM sunt echivalente pe aceste taskuri
     return {
         new PeriodicTask(  "T1",  20, 1,  4, 40),  // prio=20,  wcet=1, D=4,  T=40 | D<T: DM rank 2,  RM rank 10
         new PeriodicTask(  "T2",  30, 1,  6, 30),  // prio=30,  wcet=1, D=6,  T=30 | D<T: DM rank 4,  RM rank  9
-        new PeriodicTask( "T3",  10, 1,  3, 24),  // prio=10,  wcet=1, D=3,  T=24 | D<T: DM rank 1,  RM rank  7
+        new PeriodicTask(  "T3",  10, 1,  3, 24),  // prio=10,  wcet=1, D=3,  T=24 | D<T: DM rank 1,  RM rank  7
         new PeriodicTask(  "T4",  35, 1,  5,  5),  // prio=35,  wcet=1, D=5,  T=5  | D=T: DM rank 3,  RM rank  1
         new PeriodicTask(  "T5",  40, 1,  8,  8),  // prio=40,  wcet=1, D=8,  T=8  | D=T: DM rank 5,  RM rank  2
-        new PeriodicTask( "T6",  60, 2, 10, 10),  // prio=60,  wcet=2, D=10, T=10 | D=T: DM rank 6,  RM rank  3
-        new PeriodicTask( "T7",  70, 1, 12, 12),  // prio=70,  wcet=1, D=12, T=12 | D=T: DM rank 7,  RM rank  4
-        new PeriodicTask("T8",  80, 1, 15, 15),  // prio=80,  wcet=1, D=15, T=15 | D=T: DM rank 8,  RM rank  5
-        new PeriodicTask( "T9",  90, 1, 20, 20),  // prio=90,  wcet=1, D=20, T=20 | D=T: DM rank 9,  RM rank  6
-        new PeriodicTask( "T10",100, 1, 25, 25),  // prio=100, wcet=1, D=25, T=25 | D=T: DM rank 10, RM rank  8
-        // new AperiodicTask("T_LOG", 5, 2, 30, 37),
-        // new SporadicTask("T_BTN", 50, 1, 8, 100, {50, 180, 310, 450})
+        new PeriodicTask(  "T6",  60, 2, 10, 10),  // prio=60,  wcet=2, D=10, T=10 | D=T: DM rank 6,  RM rank  3
+        new PeriodicTask(  "T7",  70, 1, 12, 12),  // prio=70,  wcet=1, D=12, T=12 | D=T: DM rank 7,  RM rank  4
+        new PeriodicTask(  "T8",  80, 1, 15, 15),  // prio=80,  wcet=1, D=15, T=15 | D=T: DM rank 8,  RM rank  5
+        new PeriodicTask(  "T9",  90, 1, 20, 20),  // prio=90,  wcet=1, D=20, T=20 | D=T: DM rank 9,  RM rank  6
+        new PeriodicTask( "T10", 100, 1, 25, 25),  // prio=100, wcet=1, D=25, T=25 | D=T: DM rank 10, RM rank  8
     };
     // U = 1/40+1/30+1/24+1/5+1/8+2/10+1/12+1/15+1/20+1/25 = 0.865 < 1
-    // EDF:      0 misses  (U < 1, optim dinamic)
-    // DM:       0 misses  (optim fixed-priority pentru D<=T, verificat prin RTA)
-    // RM:       misses pe T1,T2,T3 (RM ignora deadlineurile stramte, le da prioritate mica)
-    // Priority: misses pe T3,T1,T2,T4 (prioritatile manuale sunt in ordine inversa DM)
 }
 
-int main() {
-    vector<Task*> tasks;
-    SchedulingPolicy* policy = nullptr;
-    int exit_code = 0;
+// numele policy-ului fara spatii, pentru numele de fisier (ex. "Rate Monotonic" -> "RateMonotonic")
+static string sanitize(const string& name) {
+    string out;
+    for (char c : name) if (c != ' ') out += c;
+    return out;
+}
 
-    int width = Dashboard::getTerminalWidth();
-    string padding(max(0, (width - 40) / 2), ' ');
+static string timestamp() {
+    time_t now = time(nullptr);
+    char buf[32];
+    strftime(buf, sizeof(buf), "%Y%m%d_%H%M%S", localtime(&now));
+    return string(buf);
+}
+
+// ruleaza o simulare completa pentru un policy si scrie trace-ul CSV. intoarce calea CSV.
+static string runSimulation(SchedulingPolicy* policy, const string& out_path, int duration) {
+    string path = out_path.empty()
+        ? "traces/trace_" + sanitize(policy->getName()) + "_" + timestamp() + ".csv"
+        : out_path;
+
+    EventQueue queue;
+    Stats stats;
+    auto sink = make_unique<CsvTraceSink>(path);
+
+    vector<Task*> tasks = createTasks();
+    for (Task* t : tasks)
+        stats.registerTask(t->getId(), t->getName(), t->getType());
+
+    Scheduler sched(policy, &stats, &queue, sink.get());
+    for (Task* t : tasks) sched.addTask(t);
+
+    sched.run(duration);
+
+    cout << "\n=== Simulare terminata (" << policy->getName() << ") ===\n";
+    cout << "CPU%: " << stats.getCpuUtilization()
+         << "  |  Deadline misses: " << stats.getTotalDeadlineMisses()
+         << "  |  Preemptions: " << stats.getTotalPreemptions() << "\n";
+    cout << "Trace scris in: " << path << "\n";
+
+    for (Task* t : tasks) delete t;
+    return path;
+}
+
+static void printUsage(const char* prog) {
+    cout << "Utilizare: " << prog << " [--policy=NAME] [--out=PATH] [--duration=N]\n"
+         << "  --policy=NAME  priority | rm | edf | dm  (fara asta: meniu interactiv)\n"
+         << "  --out=PATH     calea CSV de output (implicit traces/trace_<policy>_<timestamp>.csv)\n"
+         << "  --duration=N   numar de tickuri (implicit " << DEFAULT_DURATION << ")\n";
+}
+
+int main(int argc, char** argv) {
+    string policy_arg, out_arg;
+    int duration = DEFAULT_DURATION;
+
+    // parsare argumente simple --key=value
+    for (int i = 1; i < argc; i++) {
+        string a = argv[i];
+        if (a == "-h" || a == "--help") { printUsage(argv[0]); return 0; }
+        else if (a.rfind("--policy=", 0) == 0)   policy_arg = a.substr(9);
+        else if (a.rfind("--out=", 0) == 0)      out_arg = a.substr(6);
+        else if (a.rfind("--duration=", 0) == 0) duration = stoi(a.substr(11));
+        else { cerr << "Argument necunoscut: " << a << "\n"; printUsage(argv[0]); return 2; }
+    }
 
     try {
-        bool keep_running = true;
-        while (keep_running) {
-            for (Task* t : tasks) delete t;
-            tasks.clear();
-            delete policy;
+        if (duration <= 0)
+            throw invalid_argument("--duration trebuie sa fie > 0");
 
-            // alegere policy
-            policy = selectPolicy(padding);
+        if (!policy_arg.empty()) {
+            // mod non-interactiv: o singura rulare, util pentru scripturi/comparatii
+            auto policy = makePolicy(policy_arg);
+            if (!policy) { cerr << "Policy necunoscut: " << policy_arg << "\n"; printUsage(argv[0]); return 2; }
+            runSimulation(policy.get(), out_arg, duration);
+            return 0;
+        }
 
-            // meniu pre-rulare
-            string snapshot_file = "scheduler/stats/csv/snapshot_" + policy->getName() + ".csv";
-            int choice = 0;
-            bool should_run = true;
-            bool go_back = false;
-
-            bool in_pre_menu = true;
-            while (in_pre_menu) {
-                clearScreen();
-                cout << "\n" << padding << "=== " << policy->getName() << " ===\n";
-                cout << padding << "1. Ruleaza simularea\n";
-                cout << padding << "2. Afiseaza datele de la ultima rulare\n";
-                cout << padding << "3. Inapoi\n";
-                cout << padding << "Optiune: ";
-
-                if (!readInt(choice)) continue;
-
-                if (choice == 1) { should_run = true;  in_pre_menu = false; }
-                else if (choice == 2) {
-                    ifstream test(snapshot_file);
-                    if (!test.is_open()) {
-                        cout << "\n" << padding << "Nu exista date de la o rulare anterioara pentru " << policy->getName() << ".\n";
-                        cout << padding << "Apasa Enter pentru a continua...";
-                        waitEnter();
-                    } else {
-                        should_run = false;
-                        in_pre_menu = false;
-                    }
-                } else if (choice == 3) { go_back = true; in_pre_menu = false; }
-                else cout << padding << "Optiune invalida.\n";
-            }
-
-            if (go_back) continue; // inapoi la selectia de policy
-
-            if (!should_run) {
-                // browsing prin ultima rulare
-                auto summary = Stats::getSummaryFromCSV(snapshot_file);
-                bool in_last_run = true;
-                while (in_last_run) {
-                    clearScreen();
-                    cout << "\n" << padding << "=== Ultima rulare: " << policy->getName() << " ===\n";
-                    if (summary.valid)
-                        cout << padding << "CPU%: " << summary.cpu_util << "  |  Deadline Misses: " << summary.deadline_misses << "\n";
-                    else
-                        cout << padding << "(summary indisponibil - CSV vechi, ruleaza din nou)\n";
-                    cout << padding << "1. Vezi snapshot-ul la un tick\n";
-                    cout << padding << "2. Inapoi\n";
-                    cout << padding << "Optiune: ";
-
-                    if (!readInt(choice)) continue;
-
-                    if (choice == 1) {
-                        cout << padding << "Tick: ";
-                        int tick;
-                        if (!readInt(tick)) { cout << padding << "Tick invalid.\n"; continue; }
-                        showSnapshotAt(snapshot_file, tick, padding);
-                    } else if (choice == 2) { in_last_run = false; }
-                    else cout << padding << "Optiune invalida.\n";
-                }
-                continue; // inapoi la selectia de policy
-            }
-
-            EventQueue queue;
-            Stats stats;
-            tasks = createTasks();
-
-            for (Task* t : tasks)
-                stats.registerTask(t->getId(), t->getName(), t->getType());
-
-            Scheduler sched(policy, &stats, &queue);
-            for (Task* t : tasks) sched.addTask(t);
-
-            Dashboard dashboard(&queue, &stats, policy, tasks);
-            jthread dashboard_thread(&Dashboard::run, &dashboard); //destructorul face automat join(), util cand se lucreaza cu exceptii
-
-            sched.run(600); //hyperperioada este lcm din perioade, un nr de tickuri astfel incat totul sa fie rulat
-
-            stats.exportSnapshotCSV(snapshot_file);
-
-            // meniu post-simulare
-            bool in_menu = true;
-            while (in_menu) {
-                clearScreen();
-                cout << "\n" << padding << "=== Simulare terminata (" << policy->getName() << ") ===\n";
-                cout << "\n" << padding << "CPU% final: " << stats.getCpuUtilization() << "  |  Deadline Misses: " << stats.getTotalDeadlineMisses() << "\n";
-                cout << padding << "1. Vezi snapshot-ul sistemului la un tick\n";
-                cout << padding << "2. Ruleaza din nou\n";
-                cout << padding << "3. Iesire\n";
-                cout << padding << "Optiune: ";
-
-                if (!readInt(choice)) continue;
-
-                if (choice == 1) {
-                    cout << padding << "Tick: ";
-                    int tick;
-                    if (!readInt(tick)) { cout << padding << "Tick invalid.\n"; continue; }
-                    showSnapshotAt(snapshot_file, tick, padding);
-                } else if (choice == 2) { in_menu = false; }
-                else if (choice == 3) { in_menu = false; keep_running = false; }
-                else cout << padding << "Optiune invalida.\n";
-            }
+        // mod interactiv: alege policy, ruleaza, repeta
+        while (true) {
+            auto policy = selectPolicyInteractive();
+            if (!policy) break;
+            runSimulation(policy.get(), out_arg, duration);
         }
 
     } catch (const bad_alloc& e) {
-        cerr << "[main] Memorie insuficienta: " << e.what() << "\n";
-        exit_code = 1;
+        cerr << "[main] Memorie insuficienta: " << e.what() << "\n";  return 1;
     } catch (const invalid_argument& e) {
-        cerr << "[main] Parametru invalid: " << e.what() << "\n";
-        exit_code = 2;
+        cerr << "[main] Parametru invalid: " << e.what() << "\n";     return 2;
     } catch (const runtime_error& e) {
-        cerr << "[main] Eroare runtime: " << e.what() << "\n";
-        exit_code = 3;
+        cerr << "[main] Eroare runtime: " << e.what() << "\n";        return 3;
     } catch (const exception& e) {
-        cerr << "[main] Exceptie necunoscuta: " << e.what() << "\n";
-        exit_code = 4;
-    } catch (...) {
-        cerr << "[main] Exceptie non-standard\n";
-        exit_code = 5;
+        cerr << "[main] Exceptie: " << e.what() << "\n";              return 4;
     }
 
-    for (Task* t : tasks) delete t;
-    delete policy;
-    return exit_code; //pot printr un program extern sa dau handle in functie de codul pe care l returnez OS ului
+    return 0;
 }

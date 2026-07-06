@@ -19,22 +19,9 @@ TaskSched models the logic of an RTOS scheduler. A task set (periodic, aperiodic
 - `DeadlineMonotonicPolicy` — fixed priority derived from relative deadline (shorter deadline = higher priority)
 - `EDFPolicy` — dynamic priority, earliest absolute deadline first
 
-**Statistics & export.** Per-tick CPU utilization, deadline miss counters, per-task response times, preemption counts. State snapshots exported to CSV for offline analysis.
+**Statistics.** In-memory aggregates: CPU utilization, deadline miss counters, per-task response times, preemption counts (printed as a summary after each run).
 
-**Live dashboard.** Terminal dashboard rendered on a background thread while the simulation runs.
-
-## Build & Run
-
-```bash
-make clean
-make run
-```
-
-Task definitions are hardcoded in `main.cpp`. The constructor signature for `PeriodicTask` is:
-
-```cpp
-PeriodicTask(id, name, priority, wcet, deadline, period, first_release=0)
-```
+**CSV trace output.** Every run writes a single event-trace CSV under `traces/` through a small `TraceSink` abstraction (`scheduler/trace/`), decoupled from the tick loop. This is the sole output artifact — all visualization is done offline by the Python scripts in `analysis/` (see the end of this document).
 
 ---
 
@@ -141,6 +128,38 @@ All tasks satisfy `R_i ≤ D_i` under DM — the task set is DM-schedulable with
 Both EDF and DM produce `CPU% = U ≈ 86.5%`, the theoretical minimum: every busy tick corresponds to useful work, and idle ticks represent genuine processor slack. RM reaches the same value in this simulation because soft real-time accounting includes missed-task execution in the utilization measure.
 
 Priority saturates at 100% because T4's perpetual misses keep the ready queue permanently non-empty. A CPU utilization strictly above `U` is therefore a direct indicator of scheduling pathology under soft real-time semantics: cycles are being consumed by tasks that have already violated their deadlines rather than by useful, on-time execution.
+
+---
+
+## Build & Run
+
+```bash
+make tasksched
+./tasksched                  # interactive menu
+./tasksched --policy=edf     # non-interactive; also --out=PATH, --duration=N
+```
+
+`--policy` = `priority | rm | edf | dm`. Tasks are hardcoded in `main.cpp`.
+
+## Trace output
+
+Each run writes one event-trace CSV to `traces/trace_<policy>_<timestamp>.csv`:
+
+```text
+tick,event,task_id,task_name,remaining_time,absolute_deadline,running_task_id,cpu_busy
+```
+
+`event` ∈ `release, dispatch, preempt, complete, deadline_miss, tick, end`. N/A is `-1`/empty;
+`preempt` names the task losing the CPU. Details in `scheduler/trace/TraceSink.h`.
+
+## Analysis (Python, not compiled)
+
+```bash
+pip install -r analysis/requirements.txt
+python analysis/metrics.py traces/trace_EDF_xxx.csv     # per-task + global metrics
+python analysis/compare.py traces/trace_*.csv           # EDF vs RM vs DM side by side
+python analysis/gantt.py  traces/trace_EDF_xxx.csv --out gantt.png
+```
 
 ---
 

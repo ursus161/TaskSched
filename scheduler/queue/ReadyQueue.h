@@ -2,8 +2,8 @@
 #include "Task.h"
 
 // abstractizare peste coada de ready tasks.
-// politica decide implementarea concreta: heap pentru prioritati statice,
-// scan liniar pentru politici dinamice (ex. LLF) unde prioritatea se schimba la fiecare tick
+// implementarea curenta e HeapReadyQueue (prioritati statice pe durata unui job).
+// interfata ramane abstracta ca sa putem adauga cozi per-core la trecerea pe multi-core.
 class ReadyQueue {
 public:
     virtual ~ReadyQueue() = default;
