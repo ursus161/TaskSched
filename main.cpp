@@ -21,7 +21,7 @@ using namespace std;
 // durata implicita = o hiperperioada a task set-ului default (configs/default.csv)
 static constexpr int DEFAULT_DURATION = 600;
 // task set-ul folosit cand nu se da --taskset
-static constexpre std::string_view DEFAULT_TASKSET = "configs/default.csv";
+static constexpr std::string_view DEFAULT_TASKSET = "configs/default.csv";
 
 static bool readInt(int& val) {
     if (!(cin >> val)) {
