@@ -34,7 +34,8 @@
 
 tasksched
 
-# artefacte generate de rulari / analiza
+# artefacte generate de rulari / analiza (task set-urile scrise de mana din configs/ raman)
 traces/*.csv
+configs/generated/
 metrics.csv
 *.png

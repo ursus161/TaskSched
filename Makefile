@@ -5,7 +5,7 @@ CXXFLAGS = -std=c++23 -Wall -g \
 	-pthread
 
 SRCS = tasks/Task.cpp tasks/PeriodicTask.cpp tasks/AperiodicTask.cpp \
-       tasks/SporadicTask.cpp \
+       tasks/SporadicTask.cpp tasks/TaskSetLoader.cpp \
        scheduler/Scheduler.cpp \
        scheduler/queue/HeapReadyQueue.cpp \
        scheduler/stats/EventQueue.cpp \

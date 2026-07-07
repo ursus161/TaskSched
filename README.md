@@ -4,7 +4,7 @@ A real-time task scheduling simulator written in C++.
 
 ## Overview
 
-TaskSched models the logic of an RTOS scheduler. A task set (periodic, aperiodic, sporadic) is defined in `main.cpp`, a scheduling algorithm is selected at runtime, and the simulator runs a deterministic discrete-time loop. It is a study tool for comparing scheduling policies on identical workloads.
+TaskSched models the logic of an RTOS scheduler. A task set (periodic, aperiodic, sporadic) is loaded from a CSV file under `configs/`, a scheduling algorithm is selected at runtime, and the simulator runs a deterministic discrete-time loop. It is a study tool for comparing scheduling policies on identical workloads.
 
 ## Features
 
@@ -22,6 +22,8 @@ TaskSched models the logic of an RTOS scheduler. A task set (periodic, aperiodic
 **Statistics.** In-memory aggregates: CPU utilization, deadline miss counters, per-task response times, preemption counts (printed as a summary after each run).
 
 **CSV trace output.** Every run writes a single event-trace CSV under `traces/` through a small `TraceSink` abstraction (`scheduler/trace/`), decoupled from the tick loop. This is the sole output artifact — all visualization is done offline by the Python scripts in `analysis/` (see the end of this document).
+
+**File-driven task sets & experiments.** Task sets are CSV files in `configs/` (`--taskset=<file>`), not hardcoded. `analysis/run_experiments.py` runs every policy over every task set; `analysis/generate_tasksets.py` produces synthetic collections via the UUniFast algorithm for systematic schedulability experiments.
 
 ---
 
@@ -135,15 +137,17 @@ Priority saturates at 100% because T4's perpetual misses keep the ready queue pe
 
 ```bash
 make tasksched
-./tasksched                  # interactive menu
-./tasksched --policy=edf     # non-interactive; also --out=PATH, --duration=N
+./tasksched                                        # interactive menu, uses configs/default.csv
+./tasksched --policy=edf --taskset=configs/ts_overload.csv   # also --out=PATH, --duration=N
 ```
 
-`--policy` = `priority | rm | edf | dm`. Tasks are hardcoded in `main.cpp`.
+`--policy` = `priority | rm | edf | dm`. Task sets are CSV files in `configs/`
+(`type,name,period,wcet,deadline,priority,release_time`). Batch experiments and synthetic
+task set generation (UUniFast) live in `analysis/` — see `analysis/README.md`.
 
 ## Trace output
 
-Each run writes one event-trace CSV to `traces/trace_<policy>_<timestamp>.csv`:
+Each run writes one event-trace CSV to `traces/`:
 
 ```text
 tick,event,task_id,task_name,remaining_time,absolute_deadline,running_task_id,cpu_busy
@@ -165,6 +169,6 @@ python analysis/gantt.py  traces/trace_EDF_xxx.csv --out gantt.png
 
 ## To-do
 
-**Short term:** external configuration via file, schedulability analysis output at startup (response-time analysis per task).
+**Short term:** schedulability analysis output at startup (response-time analysis per task).
 
 **Medium term:** multi-core adaptive partitioned scheduling.

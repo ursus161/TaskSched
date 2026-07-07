@@ -1,0 +1,6 @@
+# task set schedulabil: deadline-uri implicite (D=T), U ~ 0.54 < 1
+# EDF/RM/DM: 0 deadline misses
+type,name,period,wcet,deadline,priority,release_time
+periodic,A,10,2,10,1,0
+periodic,B,20,4,20,2,0
+periodic,C,50,7,50,3,0

@@ -1,14 +1,17 @@
 # metrics per task + globale dintr-un trace CSV
 # rulare: python metrics.py traces/trace_EDF_xxx.csv [--out metrics.csv]
 import argparse
-import os
+from pathlib import Path
 import pandas as pd
 
 
-# policy-ul se vede din numele fisierului: trace_<policy>_<timestamp>.csv
+POLICIES = {"edf", "rm", "dm", "priority"}
+
+
+# policy-ul se vede din numele fisierului; il caut printre token-ele cunoscute
 def policy_name(path):
-    parts = os.path.basename(path).replace(".csv", "").split("_")
-    return parts[1] if len(parts) > 1 else parts[0]
+    parts = Path(path).stem.split("_")
+    return next((p for p in reversed(parts) if p.lower() in POLICIES), parts[-1])
 
 
 def per_task(df):

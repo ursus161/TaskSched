@@ -2,7 +2,7 @@
 # o banda per task unde ruleaza pe CPU, plus markere pt release / deadline miss
 # rulare: python gantt.py traces/trace_EDF_xxx.csv [--out gantt.png]
 import argparse
-import os
+from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
 
@@ -13,9 +13,9 @@ ap.add_argument("--out", default=None)  # daca lipseste, afiseaza fereastra
 args = ap.parse_args()
 
 df = pd.read_csv(args.trace)
-# policy-ul din numele fisierului: trace_<policy>_<timestamp>.csv
-parts = os.path.basename(args.trace).replace(".csv", "").split("_")
-policy = parts[1] if len(parts) > 1 else parts[0]
+# policy-ul din numele fisierului; il caut printre token-ele cunoscute
+parts = Path(args.trace).stem.split("_")
+policy = next((p for p in reversed(parts) if p.lower() in {"edf", "rm", "dm", "priority"}), parts[-1])
 
 # taskurile in ordinea id-ului, fiecare pe cate o linie (lane)
 ids = sorted(df[df.task_id >= 0]["task_id"].unique())
