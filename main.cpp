@@ -11,6 +11,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <stdexcept>
 #include <limits>
 #include <ctime>
@@ -58,7 +59,7 @@ static unique_ptr<SchedulingPolicy> selectPolicyInteractive() {
         auto policy = makePolicy(to_string(choice));
         if (policy) return policy;
         cout << "Optiune invalida, incearca din nou.\n";
-    }
+    }   
 }
 
 // tag scurt pt numele fisierului de trace (ex. "Rate Monotonic" -> "rm")
@@ -86,17 +87,17 @@ static string baseNoExt(const string& path) {
 static void runSimulation(SchedulingPolicy* policy, const string& taskset_path,
                           const string& out_path, int duration) {
     // incarc taskurile inainte de a crea sink-ul, ca un CSV invalid sa nu lase un trace gol
-    vector<Task*> tasks = TaskSetLoader::load(taskset_path, duration);
+    vector<unique_ptr<Task>> tasks = TaskSetLoader::load(taskset_path, duration);
 
     EventQueue queue;
     Stats stats;
     auto sink = make_unique<CsvTraceSink>(out_path);
 
-    for (Task* t : tasks)
+    for (auto& t : tasks)
         stats.registerTask(t->getId(), t->getName(), t->getType());
 
     Scheduler sched(policy, &stats, &queue, sink.get());
-    for (Task* t : tasks) sched.addTask(t);
+    for (auto& t : tasks) sched.addTask(t.get());  // scheduler-ul nu detine taskurile
 
     sched.run(duration);
 
@@ -105,8 +106,6 @@ static void runSimulation(SchedulingPolicy* policy, const string& taskset_path,
          << "  |  Deadline misses: " << stats.getTotalDeadlineMisses()
          << "  |  Preemptions: " << stats.getTotalPreemptions() << "\n";
     cout << "Trace scris in: " << out_path << "\n";
-
-    for (Task* t : tasks) delete t;
 }
 
 // alege calea de output: --out explicit, altfel derivat din taskset+policy, altfel timestamp
@@ -140,7 +139,7 @@ int main(int argc, char** argv) {
         else { cerr << "Argument necunoscut: " << a << "\n"; printUsage(argv[0]); return 2; }
     }
 
-    string taskset = taskset_arg.empty() ? DEFAULT_TASKSET : taskset_arg;
+    string taskset = taskset_arg.empty() ? string(DEFAULT_TASKSET) : taskset_arg;
 
     try {
         if (duration <= 0)

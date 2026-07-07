@@ -1,6 +1,7 @@
 #pragma once
 #include "Task.h"
 #include <vector>
+#include <memory>
 #include <string>
 
 // incarca un task set dintr-un fisier CSV (vezi configs/ pentru format).
@@ -10,6 +11,5 @@
 // duration e folosit doar pentru taskurile sporadice: le tratez worst-case,
 // generand activari la fiecare MIT (perioada minima) pana la finalul simularii.
 namespace TaskSetLoader {
-    // intoarce taskuri alocate cu new; apelantul le detine si le sterge.
-    std::vector<Task*> load(const std::string& path, int duration);
+    std::vector<std::unique_ptr<Task>> load(const std::string& path, int duration);
 }

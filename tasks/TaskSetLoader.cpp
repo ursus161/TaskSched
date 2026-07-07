@@ -46,74 +46,70 @@ std::optional<int> field(const std::vector<std::string>& f, size_t idx,
 
 } // namespace
 
-std::vector<Task*> TaskSetLoader::load(const std::string& path, int duration) {
+std::vector<std::unique_ptr<Task>> TaskSetLoader::load(const std::string& path, int duration) {
     std::ifstream fin(path);
     if (!fin.is_open())
         throw std::runtime_error("TaskSetLoader: nu pot deschide '" + path + "'");
 
     Task::resetIdCounter();  // idurile pornesc de la inceput la fiecare incarcare
 
-    std::vector<Task*> tasks;
+    // la un throw in mijloc, unique_ptr-urile din vector se elibereaza singure
+    std::vector<std::unique_ptr<Task>> tasks;
     std::string line;
     int line_no = 0;
     bool header_skipped = false;
 
-    try {
-        while (std::getline(fin, line)) {
-            line_no++;
-            if (trim(line).empty() || trim(line)[0] == '#') continue;  // goale / comentarii
+    while (std::getline(fin, line)) {
+        line_no++;
+        if (trim(line).empty() || trim(line)[0] == '#') continue;  // goale / comentarii
 
-            auto f = split(line);
-            // prima linie utila care arata a header ("type,...") e sarita
-            if (!header_skipped) {
-                header_skipped = true;
-                if (lower(trim(f[0])) == "type") continue;
-            }
-
-            // camp obligatoriu: arunca daca lipseste
-            auto req = [&](size_t idx, const std::string& col) {
-                if (auto v = field(f, idx, col, path, line_no)) return *v;
-                throw err(path, line_no, col + " lipseste");
-            };
-
-            std::string type = lower(trim(f[0]));
-            std::string name = f.size() > 1 ? trim(f[1]) : "";
-            if (type.empty()) throw err(path, line_no, "coloana 'type' lipseste");
-            if (name.empty()) throw err(path, line_no, "coloana 'name' lipseste");
-
-            int wcet     = req(3, "wcet");
-            int deadline = req(4, "deadline");
-            int priority = field(f, 5, "priority", path, line_no).value_or(0);
-            int release  = field(f, 6, "release_time", path, line_no).value_or(0);
-
-            if (wcet <= 0)     throw err(path, line_no, "wcet trebuie sa fie > 0");
-            if (deadline <= 0) throw err(path, line_no, "deadline trebuie sa fie > 0");
-            if (release < 0)   throw err(path, line_no, "release_time nu poate fi negativ");
-
-            if (type == "periodic") {
-                int period = req(2, "period");
-                if (period <= 0) throw err(path, line_no, "period trebuie sa fie > 0");
-                tasks.push_back(new PeriodicTask(name, priority, wcet, deadline, period, release));
-
-            } else if (type == "aperiodic") {
-                // pentru aperiodic period-ul e ignorat; release_time = momentul sosirii
-                tasks.push_back(new AperiodicTask(name, priority, wcet, deadline, release));
-
-            } else if (type == "sporadic") {
-                int mit = req(2, "period");  // period = min inter-arrival time
-                if (mit <= 0) throw err(path, line_no, "period (MIT) trebuie sa fie > 0");
-                // worst-case: activari la fiecare MIT, din release pana la finalul simularii
-                std::vector<int> triggers;
-                for (int t = release; t < duration; t += mit) triggers.push_back(t);
-                tasks.push_back(new SporadicTask(name, priority, wcet, deadline, mit, triggers));
-
-            } else {
-                throw err(path, line_no, "type necunoscut: '" + type + "' (periodic|aperiodic|sporadic)");
-            }
+        auto f = split(line);
+        // prima linie utila care arata a header ("type,...") e sarita
+        if (!header_skipped) {
+            header_skipped = true;
+            if (lower(trim(f[0])) == "type") continue;
         }
-    } catch (...) {
-        for (Task* t : tasks) delete t;  // fara scurgeri daca pica la mijloc
-        throw;
+
+        // camp obligatoriu: arunca daca lipseste
+        auto req = [&](size_t idx, const std::string& col) {
+            if (auto v = field(f, idx, col, path, line_no)) return *v;
+            throw err(path, line_no, col + " lipseste");
+        };
+
+        std::string type = lower(trim(f[0]));
+        std::string name = f.size() > 1 ? trim(f[1]) : "";
+        if (type.empty()) throw err(path, line_no, "coloana 'type' lipseste");
+        if (name.empty()) throw err(path, line_no, "coloana 'name' lipseste");
+
+        int wcet     = req(3, "wcet");
+        int deadline = req(4, "deadline");
+        int priority = field(f, 5, "priority", path, line_no).value_or(0);
+        int release  = field(f, 6, "release_time", path, line_no).value_or(0);
+
+        if (wcet <= 0)     throw err(path, line_no, "wcet trebuie sa fie > 0");
+        if (deadline <= 0) throw err(path, line_no, "deadline trebuie sa fie > 0");
+        if (release < 0)   throw err(path, line_no, "release_time nu poate fi negativ");
+
+        if (type == "periodic") {
+            int period = req(2, "period");
+            if (period <= 0) throw err(path, line_no, "period trebuie sa fie > 0");
+            tasks.push_back(std::make_unique<PeriodicTask>(name, priority, wcet, deadline, period, release));
+
+        } else if (type == "aperiodic") {
+            // pentru aperiodic period-ul e ignorat; release_time = momentul sosirii
+            tasks.push_back(std::make_unique<AperiodicTask>(name, priority, wcet, deadline, release));
+
+        } else if (type == "sporadic") {
+            int mit = req(2, "period");  // period = min inter-arrival time
+            if (mit <= 0) throw err(path, line_no, "period (MIT) trebuie sa fie > 0");
+            // worst-case: activari la fiecare MIT, din release pana la finalul simularii
+            std::vector<int> triggers;
+            for (int t = release; t < duration; t += mit) triggers.push_back(t);
+            tasks.push_back(std::make_unique<SporadicTask>(name, priority, wcet, deadline, mit, triggers));
+
+        } else {
+            throw err(path, line_no, "type necunoscut: '" + type + "' (periodic|aperiodic|sporadic)");
+        }
     }
 
     if (tasks.empty())
