@@ -49,6 +49,8 @@ void AperiodicTask::release(int current_time) {
     this->remaining_time = worstCaseExecutionTime;
     this->absolute_deadline = current_time + deadline;
     this->state = TaskState::Ready;
+    this->release_tick = current_time;
+    this->job_missed = false;
     //aici nu conteaza de cate ori a fost released
     this->released = true;
 }

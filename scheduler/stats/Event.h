@@ -11,6 +11,7 @@ enum class EventType {
     Preempt,
     Complete,
     DeadlineMiss, //asta ar fi grav, mai ales in RTOS unde pot sa am sisteme ABS care dau fail, nu doar un stergator
+    Drop,         //jobul tardy e abandonat cand vine un release nou al aceluiasi task (soft-RT, vezi Scheduler)
     Tick,
     EndOfSimulation
 };

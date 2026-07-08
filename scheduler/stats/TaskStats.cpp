@@ -2,17 +2,18 @@
 #include <exception>
 
 TaskStats::TaskStats()
-    : jobs_released(0), jobs_completed(0), deadline_misses(0),
+    : jobs_released(0), jobs_completed(0), deadline_misses(0), drops(0),
       preemptions(0), total_response_time(0), name(""), type("") {}
 
 TaskStats::TaskStats(const std::string& name, const std::string& type)
-    : jobs_released(0), jobs_completed(0), deadline_misses(0),
+    : jobs_released(0), jobs_completed(0), deadline_misses(0), drops(0),
       preemptions(0), total_response_time(0), name(name), type(type) {}
 
 TaskStats::TaskStats(const TaskStats& other)
     : jobs_released(other.jobs_released),
       jobs_completed(other.jobs_completed),
       deadline_misses(other.deadline_misses),
+      drops(other.drops),
       preemptions(other.preemptions),
       total_response_time(other.total_response_time),
       name(other.name), type(other.type) {}
@@ -22,6 +23,7 @@ TaskStats& TaskStats::operator=(const TaskStats& other) {
     jobs_released = other.jobs_released;
     jobs_completed = other.jobs_completed;
     deadline_misses = other.deadline_misses;
+    drops = other.drops;
     preemptions = other.preemptions;
     total_response_time = other.total_response_time;
     name = other.name;
@@ -32,6 +34,7 @@ TaskStats& TaskStats::operator=(const TaskStats& other) {
 int TaskStats::getJobsReleased() const { return jobs_released; }
 int TaskStats::getJobsCompleted() const { return jobs_completed; }
 int TaskStats::getDeadlineMisses() const { return deadline_misses; }
+int TaskStats::getDrops() const { return drops; }
 int TaskStats::getPreemptions() const { return preemptions; }
 int TaskStats::getTotalResponseTime() const { return total_response_time; }
 
@@ -51,12 +54,14 @@ void TaskStats::onComplete(int response_time) {
 }
 
 void TaskStats::onDeadlineMiss() { deadline_misses++; }
+void TaskStats::onDrop() { drops++; }
 void TaskStats::onPreempt() { preemptions++; }
 
 std::ostream& operator<<(std::ostream& out, const TaskStats& ts) {
     out << ts.name << " (" << ts.type << "): "
         << "jobs=" << ts.jobs_completed << "/" << ts.jobs_released
         << " misses=" << ts.deadline_misses
+        << " drops=" << ts.drops
         << " preempts=" << ts.preemptions
         << " avgResp=" << ts.getAverageResponseTime();
     return out;

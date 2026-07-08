@@ -104,6 +104,7 @@ static void runSimulation(SchedulingPolicy* policy, const string& taskset_path,
     cout << "\n=== Simulare terminata (" << policy->getName() << ", " << baseNoExt(taskset_path) << ") ===\n";
     cout << "CPU%: " << stats.getCpuUtilization()
          << "  |  Deadline misses: " << stats.getTotalDeadlineMisses()
+         << "  |  Drops: " << stats.getTotalDrops()
          << "  |  Preemptions: " << stats.getTotalPreemptions() << "\n";
     cout << "Trace scris in: " << out_path << "\n";
 }

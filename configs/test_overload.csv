@@ -1,0 +1,3 @@
+type,name,period,wcet,deadline,priority,release_time
+periodic,A,50,30,40,,0
+periodic,B,50,30,40,,0

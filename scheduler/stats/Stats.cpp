@@ -4,13 +4,14 @@
 
 Stats::Stats()
     : active_ticks(0), idle_ticks(0),
-      total_preemptions(0), total_deadline_misses(0) {}
+      total_preemptions(0), total_deadline_misses(0), total_drops(0) {}
 
 Stats::Stats(const Stats& other)
     : active_ticks(other.active_ticks),
       idle_ticks(other.idle_ticks),
       total_preemptions(other.total_preemptions),
       total_deadline_misses(other.total_deadline_misses),
+      total_drops(other.total_drops),
       per_task(other.per_task) {}
 
 Stats& Stats::operator=(const Stats& other) {
@@ -19,6 +20,7 @@ Stats& Stats::operator=(const Stats& other) {
     idle_ticks = other.idle_ticks;
     total_preemptions = other.total_preemptions;
     total_deadline_misses = other.total_deadline_misses;
+    total_drops = other.total_drops;
     per_task = other.per_task;
     return *this;
 }
@@ -27,6 +29,7 @@ int Stats::getActiveTicks() const { return active_ticks; }
 int Stats::getIdleTicks() const { return idle_ticks; }
 int Stats::getTotalPreemptions() const { return total_preemptions; }
 int Stats::getTotalDeadlineMisses() const { return total_deadline_misses; }
+int Stats::getTotalDrops() const { return total_drops; }
 
 double Stats::getCpuUtilization() const {
     int total = active_ticks + idle_ticks; 
@@ -89,6 +92,13 @@ void Stats::onDeadlineMiss(int task_id) {
     total_deadline_misses++;
 }
 
+void Stats::onDrop(int task_id) {
+    if (!per_task.count(task_id))
+        throw std::invalid_argument("[Stats] onDrop: task_id " + std::to_string(task_id) + " neinregistrat");
+    per_task[task_id].onDrop();
+    total_drops++;
+}
+
 void Stats::onTick(bool cpu_active) {
     if (cpu_active) active_ticks++;
     else idle_ticks++;
@@ -102,6 +112,7 @@ std::ostream& operator<<(std::ostream& out, const Stats& s) {
     << " | Idle ticks: " << s.idle_ticks << "\n";
     out << "Total preemptions: " << s.total_preemptions << "\n";
     out << "Total deadline misses: " << s.total_deadline_misses << "\n";
+    out << "Total drops (joburi tardy abandonate): " << s.total_drops << "\n";
     out << "--- Per task ---\n";
     for (const auto& pair : s.per_task) {
         out << "  [id=" << pair.first << "] " << pair.second << "\n";

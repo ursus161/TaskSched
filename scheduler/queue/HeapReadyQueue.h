@@ -23,6 +23,7 @@ public:
     void push(Task* t) override;
     Task* peek() const override;
     void pop() override;
+    void remove(Task* t) override;
     bool empty() const override;
     void clear() override;
 };

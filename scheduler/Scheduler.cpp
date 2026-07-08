@@ -125,6 +125,38 @@ void Scheduler::dispatch(Task* new_running) {
     task_start_time = current_time;
 }
 
+void Scheduler::releaseJob(Task* t) {
+    t->release(current_time);
+    event_queue->push({EventType::Release, current_time, t->getId(), t->getName()});
+    emitEvent("release", t);
+    ready_queue->push(t);
+    stats->onRelease(t->getId());
+}
+
+// Regula soft-RT de overlap: cand un job nou al lui t devine scadent iar jobul
+// precedent inca e in sistem (tardy, pe CPU sau in coada), il abandonam pe cel
+// vechi. Astfel avem mereu un singur job "viu" per task (o singura instanta pe
+// single-core), fara joburi tardy care se acumuleaza nemarginit.
+void Scheduler::dropJob(Task* t) {
+    // un job abandonat care nu si-a terminat treaba pana la deadline a ratat deadline-ul.
+    // il numaram aici o data pentru cazul D==T, unde dropul cade fix pe deadline si
+    // verificarea stricta (current_time > deadline) din bucla nu l-ar mai prinde;
+    // altfel un sistem supraincarcat cu deadline implicit ar raporta fals 0 misses.
+    if (!t->jobMissed() && current_time >= t->getAbsoluteDeadline()) {
+        event_queue->push({EventType::DeadlineMiss, current_time, t->getId(), t->getName()});
+        emitEvent("deadline_miss", t);
+        stats->onDeadlineMiss(t->getId());
+        t->job_missed = true;
+    }
+    event_queue->push({EventType::Drop, current_time, t->getId(), t->getName()});
+    emitEvent("drop", t);              // inregistram inainte sa eliberam CPU-ul/coada
+    stats->onDrop(t->getId());
+    if (t == current_running)
+        current_running = nullptr;     // jobul rula: eliberam CPU-ul
+    else
+        ready_queue->remove(t);        // jobul astepta in coada: scoatem entry-ul vechi
+}
+
 
 
 void Scheduler::run(int duration) {
@@ -136,24 +168,27 @@ void Scheduler::run(int duration) {
     try {
     for (current_time = 0; current_time < duration; current_time++) {
 
-        // verifica ce taskuri devin ready acum + deadline miss check
+        // release-uri: la fiecare boundary de perioada lansam un job nou.
+        // daca jobul precedent inca e in sistem (overlap) il abandonam intai (drop),
+        // ca sa avem mereu un singur job viu per task pe single-core.
         for (Task* t : tasks) {
-
-            if (t->isReadyAt(current_time) && t->getState() != TaskState::Ready && t->getState() != TaskState::Running) {
-                t->release(current_time);
-                event_queue->push({EventType::Release, current_time, t->getId(), t->getName()});
-                emitEvent("release", t);
-                ready_queue->push(t);
-                stats->onRelease(t->getId());
+            if (t->isReadyAt(current_time)) {
+                if (t->getState() == TaskState::Running || t->getState() == TaskState::Ready)
+                    dropJob(t);
+                releaseJob(t);
             }
+        }
 
-            // soft real-time: taskul continua sa ruleze dupa miss, doar inregistram o singura data
-            if (t->getState() != TaskState::Finished && t->getState() != TaskState::Inactive
-                && t->getState() != TaskState::Missed && current_time > t->getAbsoluteDeadline()) {
+        // deadline miss check (dupa release, ca noile joburi sa aiba deadline-ul actualizat).
+        // soft real-time: taskul care a ratat continua sa ruleze, dar numaram o singura
+        // data pe job (flag job_missed resetat la fiecare release).
+        for (Task* t : tasks) {
+            bool job_activ = (t->getState() == TaskState::Running || t->getState() == TaskState::Ready);
+            if (job_activ && !t->jobMissed() && current_time > t->getAbsoluteDeadline()) {
                 event_queue->push({EventType::DeadlineMiss, current_time, t->getId(), t->getName()});
                 emitEvent("deadline_miss", t);
                 stats->onDeadlineMiss(t->getId());
-                t->setState(TaskState::Missed);
+                t->job_missed = true;   // Scheduler e friend; nu re-numaram acelasi job
             }
         }
 
@@ -174,11 +209,13 @@ void Scheduler::run(int duration) {
             current_running->setRemainingTime(current_running->getRemainingTime() - 1);
             stats->onTick(true);
 
-            if (current_running->getRemainingTime() == 0) {
+            if (current_running->getRemainingTime() <= 0) {
                 event_queue->push({EventType::Complete, current_time, current_running->getId(), current_running->getName()});
                 emitEvent("complete", current_running);
 
-                int response_time = (current_time + 1) - (current_running->getAbsoluteDeadline() - current_running->getDeadline());
+                // response time = de la lansarea jobului curent pana la finalul acestui tick;
+                // release_tick e corect si pentru joburi tardy (nu il reconstruim din deadline)
+                int response_time = (current_time + 1) - current_running->getReleaseTick();
                 stats->onComplete(current_running->getId(), response_time);
                 current_running->setState(TaskState::Finished);
                 current_running = nullptr;

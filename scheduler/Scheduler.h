@@ -33,6 +33,11 @@ private:
 
     void dispatch(Task* new_running);
 
+    // lanseaza un job nou al lui t (release + push in coada + stats + trace)
+    void releaseJob(Task* t);
+    // abandoneaza jobul tardy al lui t cand vine un release nou (regula soft-RT de overlap)
+    void dropJob(Task* t);
+
     int task_start_time = 0;
 
     std::unique_ptr<ReadyQueue> makeQueue(SchedulingPolicy* p);

@@ -6,7 +6,7 @@
 // vezi traces/schema.md pentru semantica completa a coloanelor.
 struct TraceRecord {
     int tick;
-    std::string event;      // "release","dispatch","preempt","complete","deadline_miss","tick","end"
+    std::string event;      // "release","dispatch","preempt","complete","deadline_miss","drop","tick","end"
     int task_id;            // -1 daca N/A
     std::string task_name;  // "" daca N/A
     int remaining_time;     // -1 daca N/A

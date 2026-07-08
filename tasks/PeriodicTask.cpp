@@ -76,7 +76,9 @@ void PeriodicTask::release(int current_time){
      this->remaining_time = worstCaseExecutionTime;
     this->absolute_deadline = current_time + deadline;
    this->state = TaskState::Ready;
-    this->jobs_released++ ; 
+    this->release_tick = current_time;   // jobul nou incepe acum
+    this->job_missed = false;            // miss-ul se numara de la zero pentru jobul nou
+    this->jobs_released++ ;
 
 }
 

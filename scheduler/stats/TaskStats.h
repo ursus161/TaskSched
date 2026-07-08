@@ -10,6 +10,7 @@ private:
     int jobs_released;
     int jobs_completed;
     int deadline_misses;
+    int drops;       // joburi tardy abandonate la venirea unui release nou (soft-RT overlap)
     int preemptions; // context switches
     int total_response_time; //suma timpilor de raspuns ptr toate joburile taskului, adica finish - release
     std::string name;
@@ -25,6 +26,7 @@ public:
     int getJobsReleased() const;
     int getJobsCompleted() const;
     int getDeadlineMisses() const;
+    int getDrops() const;
     int getPreemptions() const;
     int getTotalResponseTime() const;
     double getAverageResponseTime() const;
@@ -34,6 +36,7 @@ public:
     void onRelease();
     void onComplete(int response_time);
     void onDeadlineMiss();
+    void onDrop();
     void onPreempt();
 
     friend std::ostream& operator<<(std::ostream& out, const TaskStats& ts);

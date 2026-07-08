@@ -84,6 +84,8 @@ void SporadicTask::release(int current_time) {
     remaining_time = worstCaseExecutionTime;
     absolute_deadline = current_time + deadline;
     state = TaskState::Ready;
+    release_tick = current_time;
+    job_missed = false;
     last_activation = current_time;
     next_trigger_index++;
 

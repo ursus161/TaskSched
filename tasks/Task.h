@@ -29,7 +29,9 @@ protected:
 
     TaskState state;
     int remaining_time;
-    int absolute_deadline; 
+    int absolute_deadline;
+    int release_tick;   // tickul la care a fost lansat jobul curent (ptr response time corect si la joburi tardy)
+    bool job_missed;    // jobul curent si-a inregistrat deja miss-ul? (soft-RT: numaram o singura data pe job)
 protected:
 // setterele si getterele le voi scoate in cazul in care nu le voi folosi sau voi vrea sa ascund mai mult detaliile de implementare dupa definirea claselor derivate
 
@@ -59,6 +61,8 @@ public:
     int getRemainingTime() const;
     int getAbsoluteDeadline() const;
     int getWCET() const;
+    int getReleaseTick() const;
+    bool jobMissed() const;
 
     static void resetIdCounter();
     

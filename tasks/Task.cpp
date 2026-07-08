@@ -13,7 +13,9 @@ Task::Task(const string& name, int priority, int worstCaseExecutionTime, int dea
      deadline(deadline),
      state(TaskState::Inactive),
      remaining_time(0),
-     absolute_deadline(0) {
+     absolute_deadline(0),
+     release_tick(0),
+     job_missed(false) {
     if (name.empty())
         throw std::invalid_argument("Task id=" + std::to_string(id) + ": numele nu poate fi gol");
     if (worstCaseExecutionTime <= 0)
@@ -26,11 +28,13 @@ Task::Task(const Task& other)
     : id(other.id), name(other.name), priority(other.priority),
       worstCaseExecutionTime(other.worstCaseExecutionTime), deadline(other.deadline),
       state(other.state), remaining_time(other.remaining_time),
-      absolute_deadline(other.absolute_deadline) {}
+      absolute_deadline(other.absolute_deadline),
+      release_tick(other.release_tick), job_missed(other.job_missed) {}
 
-Task::Task() 
+Task::Task()
     : id(++next_id), name(""), priority(0), worstCaseExecutionTime(0), deadline(0),
-      state(TaskState::Inactive), remaining_time(0), absolute_deadline(0) {}
+      state(TaskState::Inactive), remaining_time(0), absolute_deadline(0),
+      release_tick(0), job_missed(false) {}
 
 Task::~Task() {}
 
@@ -45,6 +49,8 @@ Task& Task::operator=(const Task& other) {
     state = other.state;
     remaining_time = other.remaining_time;
     absolute_deadline = other.absolute_deadline;
+    release_tick = other.release_tick;
+    job_missed = other.job_missed;
     return *this;
 }
 
@@ -82,6 +88,8 @@ int Task::getWCET() const { return worstCaseExecutionTime;}
 TaskState Task::getState() const { return state; }
 int Task::getRemainingTime() const { return remaining_time; }
 int Task::getAbsoluteDeadline() const { return absolute_deadline; }
+int Task::getReleaseTick() const { return release_tick; }
+bool Task::jobMissed() const { return job_missed; }
 
 void Task::setPriority(int p) { this->priority = p; }
 void Task::setState(TaskState s) { this->state = s; }

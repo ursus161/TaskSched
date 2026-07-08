@@ -13,6 +13,7 @@ private:
     int idle_ticks;
     int total_preemptions;
     int total_deadline_misses;
+    int total_drops;
     std::unordered_map<int, TaskStats> per_task; //dictionar task id si statisticile taskului
 
 public:
@@ -26,6 +27,7 @@ public:
     int getIdleTicks() const;
     int getTotalPreemptions() const;
     int getTotalDeadlineMisses() const;
+    int getTotalDrops() const;
     double getCpuUtilization() const;
     const std::unordered_map<int, TaskStats>& getPerTask() const;
 
@@ -41,6 +43,7 @@ public:
     void onPreempt(int task_id);
     void onComplete(int task_id, int response_time);
     void onDeadlineMiss(int task_id);
+    void onDrop(int task_id);
     void onTick(bool cpu_active);
 
 
