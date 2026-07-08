@@ -19,12 +19,18 @@ def summary(path):
     ticks = df[df.event == "tick"]
     n = len(ticks)
     busy = int(ticks["cpu_busy"].sum())
-    ctx = int(((df.event == "dispatch") | (df.event == "preempt")).sum())
+    # dispatches = de cate ori se incarca un task pe CPU = numarul real de context switch-uri.
+    # preemptions = subsetul acelora care au dat la o parte un task inca activ (costul real).
+    # nu tin o coloana "context_switches" agregata: ar fi dublat preemptiile (fiecare
+    # preempt vine oricum cu un dispatch al taskului care intra).
+    dispatches = int((df.event == "dispatch").sum())
+    preemptions = int((df.event == "preempt").sum())
     return {
         "trace": Path(path).name,
         "policy": policy_name(path),
         "cpu_util_%": round(100 * busy / n, 2) if n else 0,
-        "context_switches": ctx,
+        "dispatches": dispatches,
+        "preemptions": preemptions,
         "deadline_misses": int((df.event == "deadline_miss").sum()),
     }
 

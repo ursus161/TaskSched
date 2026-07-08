@@ -51,13 +51,18 @@ def globals_(df, policy):
     ticks = df[df.event == "tick"]
     n = len(ticks)
     busy = int(ticks["cpu_busy"].sum())
-    # context switch = orice dispatch sau preempt
-    ctx = int(((df.event == "dispatch") | (df.event == "preempt")).sum())
+    # dispatches = de cate ori un task e incarcat pe CPU = numarul real de context switch-uri.
+    # preemptions = subsetul care a dat la o parte un task inca activ (costul real: salvare
+    # context). nu agreg intr-un "context_switches" fiindca fiecare preempt vine oricum cu
+    # un dispatch, deci suma ar dubla preemptiile.
+    dispatches = int((df.event == "dispatch").sum())
+    preemptions = int((df.event == "preempt").sum())
     return {
         "policy": policy,
         "ticks": n,
         "cpu_util_%": round(100 * busy / n, 2) if n else 0,
-        "context_switches": ctx,
+        "dispatches": dispatches,
+        "preemptions": preemptions,
         "deadline_misses": int((df.event == "deadline_miss").sum()),
     }
 
